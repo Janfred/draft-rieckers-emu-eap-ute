@@ -16,7 +16,7 @@ author:
  -
     name: Jan-Frederik Rieckers
     ins: J.-F. Rieckers
-    organization: Verein zur Förderung eines Deutschen Forschungsnetzes e.V.
+    organization: Verein zur Foerderung eines Deutschen Forschungsnetzes e.V.
     street: Alexanderplatz 1
     code: '10178'
     city: Berlin
