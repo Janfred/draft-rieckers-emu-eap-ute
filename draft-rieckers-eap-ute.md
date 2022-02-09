@@ -19,22 +19,14 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
-category: info
-
-docname: draft-todo-yourname-protocol-latest
+title: "User-assisted Trust Establishment (EAP-UTE)"
+abbrev: "EAP-UTE"
+category: std
 ipr: trust200902
-area: AREA
-workgroup: WG Working Group
-keyword: Internet-Draft
-venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+consensus: true
+submissionType: IETF
+
+docname: draft-rieckers-eap-ute-latest
 
 stand_alone: yes
 smart_quotes: no
@@ -42,13 +34,23 @@ pi: [toc, sortrefs, symrefs]
 
 author:
  -
-    name: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+    name: Jan-Frederik Rieckers
+    ins: J.-F. Rieckers
+    organization: Verein zur Förderung eines Deutschen Forschungsnetzes e.V.
+    street: Alexanderplatz 1
+    code: '10178'
+    city: Berlin
+    country: Germany
+    email: rieckers@dfn.de
+    abbrev: DFN-Verein
 
 normative:
+  RFC2104: hmac
+  RFC3748: eap
+  RFC7542: nai
 
 informative:
+
 
 
 --- abstract
