@@ -115,9 +115,70 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
       +----------------+            +------------------+
 {: #statemachine title="EAP-UTE Server-Peer Association State Machine"}
 
-### Message format
+## Messages
 
+### General Message format
 
+TODO: Describe the message format.
+
+### Server greeting
+
+* Message Type: 1
+* Required Attributes:
+  * Versions
+  * Ciphers
+  * ServerInfo
+  * Directions
+* Optional Attributes:
+
+### Client greeting
+* Message Type: 2
+* Required Attributes:
+  * Version
+  * Cipher
+  * PeerInfo
+  * Direction
+  * Nonce_P
+  * Key_P
+* Optional Attributes:
+  * PeerId
+
+### Server Keyshare
+* Message Type: 3
+* Required Attributes:
+  * Key_S
+  * Nonce_S
+  * MAC_S
+* Optional Attributes:
+  * PeerId
+
+### Client Finished
+* Message Type: 4
+* Reqired Attributes:
+  * MAC_P
+
+### Client Completion Request
+* Message Type: 5
+* Required Attributes:
+  * Nonce_P
+  * PeerId
+* Optional Attributes:
+  * OOB-Id
+
+### Server Completion Response
+* Message Type: 6
+* Required Attributes:
+  * Nonce_S
+  * MAC_S
+* Optional Attributes:
+  * OOB-Id
+
+### Client Keyshare
+* Message Type: 7
+* Required Attributes:
+  * PeerId
+  * Nonce_P
+  * Key_P
 
 ## Initial Exchange
 
@@ -129,17 +190,21 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
       |    (NAI=new@eap-ute.arpa)             |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER GREETING (1)                 |
       |   Versions, Ciphers, ServerInfo,      |
       |   Directions                          |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT GREETING (2)                 |
       |   Version, Cipher, PeerInfo,          |
       |   Direction, Nonce_P, Key_P           |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER KEYSHARE (3)                 |
       |   PeerId, Key_S, Nonce_S, MAC_S       |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT FINISHED (4)                 |
       |   MAC_P                               |
       |                                       |
       |<- EAP-Failure ------------------------|
@@ -158,10 +223,12 @@ TODO: Do I need MACs here? What are they really for?
       |    (NAI=waiting@eap-ute.arpa)         |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER GREETING (1)                 |
       |   Versions, Ciphers, Server Info,     |
       |   Directions                          |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT COMPLETION REQUEST (5)       |
       |   PeerId, Nonce_P                     |
       |                                       |
       |<- EAP-Failure ------------------------|
@@ -178,16 +245,20 @@ TODO: Do I need MACs here? What are they really for?
       |    (NAI=waiting@eap-ute.arpa)         |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER GREETING (1)                 |
       |   Versions, Ciphers, Server Info,     |
       |   Directions                          |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT COMPLETION REQUEST (5)       |
       |   PeerId, Nonce_P, [OOB-Id]           |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER COMPLETION RESPONSE (6)      |
       |   [OOB-Id], Nonce_S, MAC_S            |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT FINISHED (4)                 |
       |   MAC_P                               |
       |                                       |
       |<- EAP-Success ------------------------|
@@ -201,19 +272,22 @@ TODO: Do I need MACs here? What are they really for?
       |<- EAP-Request/Identity -|             |
       |                                       |
       |-- EAP-Response/Identity ------------->|
-      |    (NAI=waiting@eap-ute.arpa)         |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER GREETING (1)                 |
       |   Versions, Ciphers, Server Info,     |
       |   Directions                          |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT COMPLETION REQUEST (5)       |
       |   PeerId, Nonce_P                     |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER COMPLETION RESPONSE (6)      |
       |   Nonce_S, MAC_S                      |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT FINISHED (4)                 |
       |   MAC_P                               |
       |                                       |
       |<- EAP-Success ------------------------|
@@ -225,19 +299,22 @@ TODO: Do I need MACs here? What are they really for?
       |<- EAP-Request/Identity -|             |
       |                                       |
       |-- EAP-Response/Identity ------------->|
-      |    (NAI=waiting@eap-ute.arpa)         |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER GREETING (1)                 |
       |   Versions, Ciphers, Server Info,     |
       |   Directions                          |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT KEYSHARE (7)                 |
       |   PeerId, Nonce_P, Key_P              |
       |                                       |
       |<- EAP-Request/EAP-UTE ----------------|
+      |   SERVER KEYSHARE (3)                 |
       |   Nonce_S, Key_S, MAC_S               |
       |                                       |
       |-- EAP-Response/EAP-UTE -------------->|
+      |   CLIENT FINISHED (4)                 |
       |   MAC_P                               |
       |                                       |
       |<- EAP-Success ------------------------|
@@ -272,7 +349,7 @@ There are no implementations yet.
 
 --- back
 
-# Acknowledgments
-{:numbered="false"}
+# Acknowledgements {#Acknowledgements}
+{:unnumbered}
 
-TODO acknowledge.
+TBD
