@@ -1,28 +1,29 @@
 ---
-title: "User-assisted Trust Establishment (EAP-UTE)"
-abbrev: "EAP-UTE"
-category: std
+stand_alone: true
 ipr: trust200902
-consensus: true
-submissionType: IETF
+cat: std
+submissiontype: IETF
+area: SEC
+wg: Internet Engineering Task Force
 
 docname: draft-rieckers-eap-ute-latest
 
-stand_alone: yes
+title: "User-assisted Trust Establishment (EAP-UTE)"
+abbrev: "EAP-UTE"
+lang: en
 smart_quotes: no
 pi: [toc, sortrefs, symrefs]
-
 author:
- -
-    name: Jan-Frederik Rieckers
+  - name: Jan-Frederik Rieckers
+    org: Deutsches Forschungsnetz | German National Research and Education Network
     ins: J.-F. Rieckers
-    organization: Verein zur Foerderung eines Deutschen Forschungsnetzes e.V.
     street: Alexanderplatz 1
-    code: '10178'
+    code: 10178
     city: Berlin
     country: Germany
     email: rieckers@dfn.de
-    abbrev: DFN-Verein
+    abbrev: DFN
+    uri: www.dfn.de
 
 normative:
   RFC2104: hmac
