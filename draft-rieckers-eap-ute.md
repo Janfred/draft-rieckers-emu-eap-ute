@@ -66,6 +66,8 @@ This is mainly achieved by using CBOR with numeric keys instead of JSON to encod
 
 TODO: Also included is extensibility.
 
+The possible problems of EAP-NOOB are discussed in {{I-D.draft-rieckers-emu-eap-noob-observations}}. This document provides a specification which aims to address these concerns.
+
 
 # Conventions and Definitions
 
@@ -134,7 +136,32 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
 
 ### General Message format
 
-TODO: Describe the message format.
+All messages are encoded in CBOR {{RFC8949}} as maps. A detailed format description will follow with a first implementation.
+
+TODO: Here comes a list of message fields with their type
+
+#### Thoughts about the message format
+
+EAP-NOOB {{RFC9140}} uses JSON as encoding. Problems of using JSON are discussed in section 2.1 of {{I-D.draft-rieckers-emu-eap-noob-observations}}.
+
+The possible other formats include:
+
+* Static encoding  
+  This allows a minimal number of bytes and requires minimal amount of parsing, since format and order of the message fields is exactly specified.
+  However, this encoding severely effects the extensibility, unless a specific extension format is used.
+  Additionally, a mechanism for optional fields is required.
+* CBOR with static fields  
+  This approach has a slightly higher number of bytes then the static encoding, but allows for an easier extensibility.
+  The required fields can be specified, so the order of the protocol field is static and a parser has minimal effort to parse the protocol fields.
+  However, this might be problematic in future protocol versions, when new fields are introduced.
+  Like with static encoding, this also requires a mechanism for optional fields in the different message types.
+* CBOR map with numeric keys  
+  To mitigate the problems of optional fields, while keeping the parsing effort low, CBOR maps with numeric keys can be used.
+  All protocol fields are identified by a unique ID, specified in this document.
+  A parser can simply loop through the CBOR map. Since CBOR maps have a canonical order, minimal implementations may rely on this fact to parse the information needed.
+
+On the basis of this discussion, this version of the specification will use a CBOR map as message encoding.
+However, this is just a suggestion and suggestions for other message formats are highly welcome.
 
 ### Server greeting
 
@@ -166,6 +193,7 @@ TODO: Describe the message format.
   * MAC_S
 * Optional Attributes:
   * PeerId
+  * AdditionalServerInfo
 
 ### Client Finished
 * Message Type: 4
@@ -354,7 +382,7 @@ What they are exactly needs to be defined in detail.
 The EAP Method Type number for EAP-UTE needs to be assigned.
 The reference implementation will use 255 (Experimental) for now.
 
-Like EAP-NOOB, this draft will probably use the eap-ute.arpa domain as default NAI realm.
+Like EAP-NOOB, this draft will probably use a .arpa domain, in this case probably eap-ute.arpa, as default NAI realm.
 
 # Implementation Status
 
