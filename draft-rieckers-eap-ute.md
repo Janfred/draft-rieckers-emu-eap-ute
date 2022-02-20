@@ -29,9 +29,21 @@ normative:
   RFC2104: hmac
   RFC3748: eap
   RFC7542: nai
+  RFC8949: cbor
 
 informative:
   RFC9140: eapnoob
+  I-D.draft-rieckers-emu-eap-noob-observations:
+    title: Observations about EAP-NOOB (RFC 9140)
+    author:
+      ins: J.-F. Rieckers
+      name: Jan-Frederik Rieckers
+      org: DFN, Germany
+    date: 2022
+    seriesinfo:
+      Internet-Draft: draft-rieckers-emu-eap-noob-observations-00
+    format:
+      TXT: https://www.ietf.org/archive/id/draft-rieckers-emu-eap-noob-observations-00.txt
 
 
 --- abstract
