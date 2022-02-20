@@ -49,7 +49,10 @@ The peer must have a secondary input or output interface, such as a display, cam
 This document describes a method for registration, authentication, and key derivation for network-connected devices, especially with low computational power and small or no interaction interfaces, such as devices that are part of the Internet of Things (IoT).
 These devices may come without preconfigured trust anchors or have no possibility to receive a network configuration that enables them to connect securely to a network.
 
-This document uses the basic design principle behind the EAP-NOOB method described in {{RFC9140}} but uses binary representation instead of JSON.
+This document uses the basic design principle behind the EAP-NOOB method described in {{RFC9140}} and aims to improve some key elements of the protocol to better address the needs for IoT devices.
+This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the message.
+
+TODO: Also included is extensibility.
 
 
 # Conventions and Definitions
