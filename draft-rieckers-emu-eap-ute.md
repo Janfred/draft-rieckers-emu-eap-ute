@@ -6,7 +6,7 @@ submissiontype: IETF
 area: SEC
 wg: Internet Engineering Task Force
 
-docname: draft-rieckers-eap-ute-latest
+docname: draft-rieckers-emu-eap-ute-latest
 
 title: "User-assisted Trust Establishment (EAP-UTE)"
 abbrev: "EAP-UTE"
