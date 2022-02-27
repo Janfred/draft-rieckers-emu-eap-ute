@@ -390,6 +390,29 @@ Note to RFC Editor: Please remove this entire section before publication.
 
 There are no implementations yet.
 
+# Differences to RFC 9140 (EAP-NOOB)
+
+In this section the main differences between EAP-NOOB and EAP-UTE are discussed.
+
+## Different encoding
+
+EAP-UTE uses CBOR instead of JSON.
+
+## Implicit transmission of peer state
+
+In EAP-NOOB all EAP exchanges start with the same common handshake, which serves mainly the purpose to detect the client's current status.
+
+The server initiates the EAP conversation by sending a Type 1 message without any further content, to which the peer responds by sending it's PeerId, if it was assigned, and it's PeerStatus.
+
+In EAP-UTE, this peer state transmission is done implicitly by the peer's choice of response to the Server Greeting.
+
+This adds probably unnecessary bytes in the first packet from the server to the peer, since the peer already knows the server's supported versions, ciphers and the ServerInfo.
+However, this increased number of bytes is negligible in comparison to the elevated expense of an additional roundtrip, since this would significantly increase the authentication time, especially if the packet is routed through a number of proxies.
+
+## Extensibility
+
+The EAP-NOOB standard does not specify how to deal with unexpected labels in the message.
+
 --- back
 
 # Acknowledgements {#Acknowledgements}
