@@ -138,7 +138,30 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
 
 All messages are encoded in CBOR {{RFC8949}} as maps. A detailed format description will follow with a first implementation.
 
-TODO: Here comes a list of message fields with their type
+In {{mapkeys}} the different message fields and their assigned mapkey are listed.
+
+| Mapkey | Type | Label | Description |
+|--------|------|-------|-------------|
+| 1      | Array of Integers | Versions | The versions supported by the server. For this document the version is 1 |
+| 2      | Integer | Version | The version selected by the peer |
+| 3      | Array? | Ciphers | The ciphers supported by the server. TODO: Not yet sure how to define them. |
+| 4      | Integer? | Cipher | The cipher selected by the peer |
+| 5      | Integer | Directions | The OOB-Directions supported by the server. 0x01 for peer-to-server, 0x02 for server-to-peer, 0x03 for both |
+| 6      | Integer | Direction | The OOB-Direction selected by the peer. SHOULD be either 0x01 or 0x02 |
+| 7      | Map | ServerInfo | Information about the server, e.g. a URL for OOB-message-submission |
+| 8      | Map | PeerInfo | Information about the peer, e.g. manufacturer/serial number |
+| 9      | bytes | Nonce_P | Peer Nonce |
+| 10     | bytes | Nonce_S | Server Nonce |
+| 11     | ? | Key_P | Peer's ECDHE key according to the chosen cipher |
+| 12     | ? | Key_S | Server's ECDHE key |
+| 13     | bytes | MAC_S | Server MAC |
+| 14     | bytes | MAC_P | Peer MAC |
+| 15     | text | PeerId | Peer Identifier |
+| 16     | bytes | OOB-Id | Identifier of the OOB message |
+{: #mapkeys title="Mapkeys for CBOR encoding"}
+
+TODO: Depending on the definition of the Cipher Suites, the format for Ciphers and Cipher might change, as well as Key_P and Key_S.
+The most immediate choice would be COSE {{RFC8152}}. But maybe there are better choices out there.
 
 #### Thoughts about the message format
 
@@ -225,7 +248,39 @@ However, this is just a first draft and suggestions for other message formats ar
   * Nonce_P
   * Key_P
 
-## Initial Exchange
+## Protocol Sequence
+
+After reception of the EAP-Response/Identity packet, the server always answers with a Server Greeting packet (Type 1).
+This Server Greeting contains the supported protocol versions, ciphers and OOB directions along with the ServerInfo.
+
+Depending on the peer state, the peer chooses the next packet.
+If the peer is in the unregistered state and does not yet have an ephemeral or persistent state, it chooses the Client Greeting, which starts the Initial Handshake.
+
+If the peer is in the Waiting for OOB or OOB Received state, the Initial Exchange has completed and the OOB step needs to take place.
+If the negotiated direction is from server to peer, the peer SHOULD NOT try to reconnect, unless the peer received an OOB message.
+If the negotiated direction is from peer to server, the peer can probe the server at regular intervals to check if the OOB message to the server has been delivered.
+The client will send a Client Completion Request to initiate the Waiting/Completion Exchange.
+
+If the peer is in the Registered state, it may choose between three different Reconnect Exchanges.
+If the peer wants a reconnect without new key exchanges, it will send a Client Completion Request, starting the Reconnect exchange without ECDHE.
+If the peer wants to reconnect with new key exchanges, it will send a Client Key Share packet, which starts the Reconnect Exchange with new ECDHE exchange.
+The third option is a reconnect with a new version or cipher, this is TBD.
+
+### Initial Exchange
+
+The Initial Exchange comprises of the following packets:
+
+After the server greeting common to all exchanges, the peer sends a Client Greeting packet.
+The Client Greeting contains the client's chosen protocol version, cipher and direction of the OOB message.
+The client MUST only choose values for these fields offered by the server before.
+Additionally, the Client Greeting contains PeerInfo, a nonce and the peer's ECDHE public key.
+
+The server will then answer with a Server Keyshare packet.
+The packet contains a newly allocated PeerId, the server's nonce and ECDHE public key and the message authentication code MAC_S.
+
+The peer then answers with a Client Finished packet, containing the peer's message authentication code MAC_P.
+
+Since no authentication has yet been achieved, the server then answers with an EAP-Failure.
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -258,7 +313,13 @@ However, this is just a first draft and suggestions for other message formats ar
 
 TODO: Do I need MACs here? What are they really for?
 
-## Waiting Exchange
+### Waiting Exchange
+
+The Waiting Exchange is performed, if neither the server nor the peer have received an out-of-band message yet.
+
+The peer probes the server with a Client Completion Request.
+
+TODO: Write more text here.
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -280,7 +341,9 @@ TODO: Do I need MACs here? What are they really for?
       |                                       |
 {: #waitingexchange title="Waiting Exchange"}
 
-## Completion Exchange
+### Completion Exchange
+
+TODO: Describe the completion exchange
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -310,7 +373,9 @@ TODO: Do I need MACs here? What are they really for?
       |                                       |
 {: #completionexchange title="Completion Exchange"}
 
-## Reconnect Exchange
+### Reconnect Exchange
+
+TODO: Describe the reconnect exchange
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -366,6 +431,10 @@ TODO: Do I need MACs here? What are they really for?
       |                                       |
 {: #reconnectecdhe title="Reconnect Exchange with new ECDHE exchange"}
 
+
+## MAC and OOB calculation and Key derivation
+
+TBD
 
 # Security Considerations
 
