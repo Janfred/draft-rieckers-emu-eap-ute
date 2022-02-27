@@ -1,6 +1,5 @@
 ---
-stand_alone: true
-ipr: trust200902
+v: 3
 cat: std
 submissiontype: IETF
 area: SEC
@@ -32,6 +31,7 @@ normative:
   RFC8949: cbor
 
 informative:
+  RFC8152: cose
   RFC9140: eapnoob
   I-D.draft-rieckers-emu-eap-noob-observations:
     title: Observations about EAP-NOOB (RFC 9140)
@@ -51,8 +51,8 @@ informative:
 The Extensible Authentication Protocol (EAP) provides support for multiple authentication methdos.
 This document defines the EAP-UTE authentication method for a User-assisted Trust Establishment between the peer and the server.
 The EAP method is intended for bootstraping Internet-of-Things (IoT) devices without preconfigured authentication credentials.
-The trust establishment is achived by transmitting a one-directional out-of-band message between the peer and the server to authenticate the in-band exchange.
-The peer must have a secondary input or output interface, such as a display, camera, microphone, speaker, blinking light, or lightsensor, so dynamically generated messages with tens of bytes in length can be transmitted.
+The trust establishment is achieved by transmitting a one-directional out-of-band message between the peer and the server to authenticate the in-band exchange.
+The peer must have a secondary input or output interface, such as a display, camera, microphone, speaker, blinking light, or light sensor, so dynamically generated messages with tens of bytes in length can be transmitted.
 
 --- middle
 
@@ -87,7 +87,7 @@ This section defines the EAP-UTE method.
 
 ## Protocol Overview
 
-TODO: The introduction text is basically copied from RFC9140. should be reworded.
+TODO: The introduction text is basically copied from RFC9140. Should be reworded.
 
 The EAP-UTE method execution spans two or more EAP conversations, called Exchanges in this specification.
 Each Exchange consists of several EAP request-response pairs.
@@ -144,7 +144,7 @@ TODO: Here comes a list of message fields with their type
 
 EAP-NOOB {{RFC9140}} uses JSON as encoding. Problems of using JSON are discussed in section 2.1 of {{I-D.draft-rieckers-emu-eap-noob-observations}}.
 
-The possible other formats include:
+The possible formats include:
 
 * Static encoding  
   This allows a minimal number of bytes and requires minimal amount of parsing, since format and order of the message fields is exactly specified.
@@ -161,7 +161,9 @@ The possible other formats include:
   A parser can simply loop through the CBOR map. Since CBOR maps have a canonical order, minimal implementations may rely on this fact to parse the information needed.
 
 On the basis of this discussion, this version of the specification will use a CBOR map as message encoding.
-However, this is just a suggestion and suggestions for other message formats are highly welcome.
+However, this is just a first draft and suggestions for other message formats are highly welcome.
+
+
 
 ### Server greeting
 
@@ -193,7 +195,7 @@ However, this is just a suggestion and suggestions for other message formats are
   * MAC_S
 * Optional Attributes:
   * PeerId
-  * AdditionalServerInfo
+  * AdditionalServerInfo?
 
 ### Client Finished
 * Message Type: 4
@@ -367,7 +369,7 @@ TODO: Do I need MACs here? What are they really for?
 
 # Security Considerations
 
-TODO Security
+This document has a lot of security considerations, however they remain TBD
 
 ## EAP Security Claims
 
@@ -383,6 +385,8 @@ The EAP Method Type number for EAP-UTE needs to be assigned.
 The reference implementation will use 255 (Experimental) for now.
 
 Like EAP-NOOB, this draft will probably use a .arpa domain, in this case probably eap-ute.arpa, as default NAI realm.
+
+Additionally, the IANA should create registries for the message types and the message field mapkeys.
 
 # Implementation Status
 
