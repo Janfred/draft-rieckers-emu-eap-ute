@@ -1,4 +1,4 @@
 # License
 
 See the
-[guidelines for contributions](https://github.com/Janfred/draft-rieckers-eap-ute/blob//CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/Janfred/draft-rieckers-emu-eap-ute/blob//CONTRIBUTING.md).
