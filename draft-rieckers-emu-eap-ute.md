@@ -520,7 +520,7 @@ Some problems of {{RFC9140}} are discussed in {{I-D.draft-rieckers-emu-eap-noob-
 
 ## Different encoding
 
-EAP-UTE uses CBOR instead of JSON.
+EAP-UTE uses CBOR instead of JSON. More text TBD.
 
 ## Implicit transmission of peer state
 
@@ -530,12 +530,13 @@ The server initiates the EAP conversation by sending a Type 1 message without an
 
 In EAP-UTE, this peer state transmission is done implicitly by the peer's choice of response to the Server Greeting.
 
-This adds probably unnecessary bytes in the first packet from the server to the peer, since the peer already knows the server's supported versions, ciphers and the ServerInfo.
-However, this increased number of bytes is negligible in comparison to the elevated expense of an additional roundtrip, since this would significantly increase the authentication time, especially if the packet is routed through a number of proxies.
+This adds probably unnecessary bytes in the first packet from the server to the peer, since the peer already knows the server's supported versions, ciphers and the ServerInfo in the later exchanges, especially in the Waiting/Completion Exchange.
+However, this increased number of bytes is negligible in comparison to the elevated expense of an additional roundtrip, since this would significantly increase the authentication time, especially if the EAP packets are routed through a number of proxies.
 
 ## Extensibility
 
 The EAP-NOOB standard does not specify how to deal with unexpected labels in the message.
+This specification allows for extensions. They are still TBD.
 
 --- back
 
