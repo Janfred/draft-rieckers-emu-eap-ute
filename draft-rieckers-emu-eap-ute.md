@@ -48,11 +48,11 @@ informative:
 
 --- abstract
 
-The Extensible Authentication Protocol (EAP) provides support for multiple authentication methdos.
+The Extensible Authentication Protocol (EAP) provides support for multiple authentication methods.
 This document defines the EAP-UTE authentication method for a User-assisted Trust Establishment between the peer and the server.
-The EAP method is intended for bootstraping Internet-of-Things (IoT) devices without preconfigured authentication credentials.
+The EAP method is intended for bootstrapping Internet-of-Things (IoT) devices without preconfigured authentication credentials.
 The trust establishment is achieved by transmitting a one-directional out-of-band message between the peer and the server to authenticate the in-band exchange.
-The peer must have a secondary input or output interface, such as a display, camera, microphone, speaker, blinking light, or light sensor, so dynamically generated messages with tens of bytes in length can be transmitted.
+The peer must have a secondary input or output interface, such as a display, camera, microphone, speaker, blinking light, or light sensor, so dynamically generated messages with tens of bytes in length can be transmitted or received.
 
 --- middle
 
@@ -64,7 +64,7 @@ These devices may come without preconfigured trust anchors or have no possibilit
 This document uses the basic design principle behind the EAP-NOOB method described in {{RFC9140}} and aims to improve some key elements of the protocol to better address the needs for IoT devices.
 This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the message.
 
-TODO: Also included is extensibility.
+TODO: The EAP-UTE protocol also allows for extensions, they are still TBD. Basically, the messages can just include additional fields with newly defined meanings.
 
 The possible problems of EAP-NOOB are discussed in {{I-D.draft-rieckers-emu-eap-noob-observations}}. This document provides a specification which aims to address these concerns.
 
@@ -112,7 +112,7 @@ The completion exchange may result in EAP-Success.
 Once the peer and server have performed a successful completion exchange, both endpoints store the created association in persistent storage.
 
 After a successful Completion Exchange, the peer and server can use the Reconnect Exchange, to create a new association with new cryptographic bindings.
-The user-assisted OOB step is not necessary, since the peer and server can infer the mutual authentication by using the persistent data stored in the Completion Exchange.
+The user-assisted OOB step is not necessary, since the peer and server can infer the mutual authentication by using the persistent data stored after the Completion Exchange.
 
                                           Waiting
                                           .------.
@@ -177,23 +177,23 @@ The most immediate choice would be COSE {{RFC8152}}. But maybe there are better 
 
 EAP-NOOB {{RFC9140}} uses JSON as encoding. Problems of using JSON are discussed in section 2.1 of {{I-D.draft-rieckers-emu-eap-noob-observations}}.
 
-The possible formats include:
+For this specification, the following encodings have been evaluated:
 
 * Static encoding  
   This allows a minimal number of bytes and requires minimal amount of parsing, since format and order of the message fields is exactly specified.
   However, this encoding severely effects the extensibility, unless a specific extension format is used.
-  Additionally, a mechanism for optional fields is required.
-* CBOR with static fields  
+  This specification also has optional fields in some message types, so this would also have to be addressed.
+* CBOR with static fields (e.g. Array)  
   This approach has a slightly higher number of bytes then the static encoding, but allows for an easier extensibility.
   The required fields can be specified, so the order of the protocol field is static and a parser has minimal effort to parse the protocol fields.
   However, this might be problematic in future protocol versions, when new fields are introduced.
   Like with static encoding, this also requires a mechanism for optional fields in the different message types.
 * CBOR map with numeric keys  
   To mitigate the problems of optional fields, while keeping the parsing effort low, CBOR maps with numeric keys can be used.
-  All protocol fields are identified by a unique ID, specified in this document.
+  All protocol fields are identified by a unique identifier, specified in this document.
   A parser can simply loop through the CBOR map. Since CBOR maps have a canonical order, minimal implementations may rely on this fact to parse the information needed.
 
-On the basis of this discussion, this version of the specification will use a CBOR map as message encoding.
+On the basis of this discussion, this draft will use a CBOR map as message encoding.
 However, this is just a first draft and suggestions for other message formats are highly welcome.
 
 
@@ -486,6 +486,10 @@ TODO: Reconnect exchange with updated version or cipher suite
 {: #sec_keys }
 TBD
 
+## Error handling
+
+TBD
+
 # Security Considerations
 
 This document has a lot of security considerations, however they remain TBD
@@ -516,7 +520,7 @@ There are no implementations yet.
 # Differences to RFC 9140 (EAP-NOOB)
 
 In this section the main differences between EAP-NOOB and EAP-UTE are discussed.
-Some problems of {{RFC9140}} are discussed in {{I-D.draft-rieckers-emu-eap-noob-observations}.
+Some problems of {{RFC9140}} are discussed in {{I-D.draft-rieckers-emu-eap-noob-observations}}.
 
 ## Different encoding
 
@@ -524,9 +528,9 @@ EAP-UTE uses CBOR instead of JSON. More text TBD.
 
 ## Implicit transmission of peer state
 
-In EAP-NOOB all EAP exchanges start with the same common handshake, which serves mainly the purpose to detect the client's current status.
+In EAP-NOOB all EAP exchanges start with the same common handshake, which serves mainly the purpose to detect the current peer state.
 
-The server initiates the EAP conversation by sending a Type 1 message without any further content, to which the peer responds by sending it's PeerId, if it was assigned, and it's PeerStatus.
+The server initiates the EAP conversation by sending a Type 1 message without any further content, to which the peer responds by sending it's PeerId, if it was assigned, and it's PeerState.
 
 In EAP-UTE, this peer state transmission is done implicitly by the peer's choice of response to the Server Greeting.
 
@@ -535,8 +539,8 @@ However, this increased number of bytes is negligible in comparison to the eleva
 
 ## Extensibility
 
-The EAP-NOOB standard does not specify how to deal with unexpected labels in the message.
-This specification allows for extensions. They are still TBD.
+The EAP-NOOB standard does not specify how to deal with unexpected labels in the message, which could be used to extend the protocol.
+This specification explicitly allows for extensions. They are still TBD.
 
 --- back
 
