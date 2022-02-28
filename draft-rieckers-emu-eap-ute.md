@@ -262,7 +262,7 @@ If the negotiated direction is from peer to server, the peer can probe the serve
 The client will send a Client Completion Request to initiate the Waiting/Completion Exchange.
 
 If the peer is in the Registered state, it may choose between three different Reconnect Exchanges.
-If the peer wants a reconnect without new key exchanges, it will send a Client Completion Request, starting the Reconnect exchange without ECDHE.
+If the peer wants a reconnect without new key exchanges, it will send a Client Completion Request, starting the Reconnect Exchange without ECDHE.
 If the peer wants to reconnect with new key exchanges, it will send a Client Key Share packet, which starts the Reconnect Exchange with new ECDHE exchange.
 The third option is a reconnect with a new version or cipher, this is TBD.
 
@@ -318,8 +318,12 @@ TODO: Do I need MACs here? What are they really for?
 The Waiting Exchange is performed, if neither the server nor the peer have received an out-of-band message yet.
 
 The peer probes the server with a Client Completion Request.
+In this packet the peer omits the optional OOB-Id field.
+If the OOB message is delivered from the peer to the server, the server may have received an OOB message already.
+To allow the server to complete the association, the peer includes a nonce, along with the allocated PeerId.
+The nonce MAY be repeated for all Client Completion Requests while waiting for the completion.
 
-TODO: Write more text here.
+If the server did not receive an OOB message, it answers with an EAP-Failure.
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -343,7 +347,20 @@ TODO: Write more text here.
 
 ### Completion Exchange
 
-TODO: Describe the completion exchange
+The Completion Exchange is performed to finish the mutual trust establishment.
+
+As in the Waiting Exchange, the peer probes the server with a Client Completion Request.
+The nonce of the previous Client Completion Requests which did not lead to a completion MAY be repeated.
+If the peer has received an OOB message, the peer will include the OOB-Id in the Completion Request.
+If the peer did not include an OOB-Id, the server will include the OOB-Id of its received OOB message.
+In the unlikely case, that both directions are negotiated and an OOB message is delivered from the peer to the server and from the server to the peer at the same time, as a tiebreaker the OOB message from the server to the peer is chosen.
+
+The server generates a new nonce, calculates MAC_S according to {{sec_keys}} and sends a Server Completion Response to the peer.
+
+The peer will then calculate the MAC_P value and send a Client Finished message to the server.
+
+The server then answers with an EAP-Success.
+
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -375,7 +392,18 @@ TODO: Describe the completion exchange
 
 ### Reconnect Exchange
 
-TODO: Describe the reconnect exchange
+The Reconnect Exchange is performed if both the peer and the server are in the registered state.
+
+For a reconnect without new exchanging of ECDHE keys, the client will answer to the Server Greeting with a Client Completion Request, including the PeerId and a nonce.
+
+To distinguish a Reconnect Exchange from a Waiting/Completion Exchange, the server will look up the saved states for the transmitted PeerId.
+If the server has a persistent state saved, it will chose the Reconnect Exchange, otherwise it will choose the Waiting Exchange.
+
+The server will then generate a nonce and the MAC_S value according to {{sec_keys}} and send a Server Completion Response with the nonce and MAC_S value.
+
+The peer then sends a Client Finished message, containing the computed MAC_P value.
+
+The server then answers with an EAP-Success
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -404,6 +432,15 @@ TODO: Describe the reconnect exchange
       |                                       |
 {: #reconnectstatic title="Reconnect Exchange without new ECDHE exchange"}
 
+For a Reconnect Exchange with new ECDHE exchange, the peer will send a Client Keyshare in response to the Server Greeting.
+The Client Keyshare will include the PeerId, a nonce and a new ECDHE key.
+
+The server will also generate a new ECDHE key, a nonce and compute MAC_S according to {{sec_keys}}.
+
+The peer will then calculate the MAC_P value and send a Client Finished message to the server.
+
+The server then answers with an EAP-Success.
+
     EAP Peer            Authenticator   EAP Server
       |                         |             |
       |<- EAP-Request/Identity -|             |
@@ -431,9 +468,10 @@ TODO: Describe the reconnect exchange
       |                                       |
 {: #reconnectecdhe title="Reconnect Exchange with new ECDHE exchange"}
 
+TODO: Reconnect exchange with updated version or cipher suite
 
 ## MAC and OOB calculation and Key derivation
-
+{: #sec_keys }
 TBD
 
 # Security Considerations
