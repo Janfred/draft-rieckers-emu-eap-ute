@@ -485,7 +485,7 @@ TODO. See {{RFC3748}}, section 7.2.1
 
 # IANA Considerations
 
-This document has IANA actions.
+This document has IANA actions, if approved.
 What they are exactly needs to be defined in detail.
 
 The EAP Method Type number for EAP-UTE needs to be assigned.
@@ -504,6 +504,7 @@ There are no implementations yet.
 # Differences to RFC 9140 (EAP-NOOB)
 
 In this section the main differences between EAP-NOOB and EAP-UTE are discussed.
+Some problems of {{RFC9140}} are discussed in {{I-D.draft-rieckers-emu-eap-noob-observations}.
 
 ## Different encoding
 
