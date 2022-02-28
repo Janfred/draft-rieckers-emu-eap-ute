@@ -134,6 +134,14 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
 
 ## Messages
 
+The packets are formated as follows:
+
+TODO: My current idea: Message Type as Byte, Length of CBOR as 2 bytes, CBOR encoding. If MACs are included in the message, they are just appended.
+This allows the MAC to be calculated of all message contents.
+The server MAC is sent along with nonces/keys, so an encoding like this allows the MAC to include the nonce, the server key and possible further attributes of future extensions without need for an overly complex or error prone calculation.
+We simply can concatenate the sent and received messages for the MAC calculation.
+
+
 ### General Message format
 
 All messages are encoded in CBOR {{RFC8949}} as maps. A detailed format description will follow with a first implementation.
@@ -158,6 +166,8 @@ In {{mapkeys}} the different message fields and their assigned mapkey are listed
 | 14     | bytes | MAC_P | Peer MAC |
 | 15     | text | PeerId | Peer Identifier |
 | 16     | bytes | OOB-Id | Identifier of the OOB message |
+| 17     | int | RetryInterval | Number of seconds to wait after a failed Completion Exchange |
+| 18     | Map | AdditionalServerInfo | Additional information about the server. TODO: not sure about this yet. |
 {: #mapkeys title="Mapkeys for CBOR encoding"}
 
 TODO: Depending on the definition of the Cipher Suites, the format for Ciphers and Cipher might change, as well as Key_P and Key_S.
@@ -197,6 +207,7 @@ However, this is just a first draft and suggestions for other message formats ar
   * ServerInfo
   * Directions
 * Optional Attributes:
+  * RetryInterval?
 
 ### Client greeting
 * Message Type: 2
@@ -219,6 +230,7 @@ However, this is just a first draft and suggestions for other message formats ar
 * Optional Attributes:
   * PeerId
   * AdditionalServerInfo?
+  * RetryInterval?
 
 ### Client Finished
 * Message Type: 4
