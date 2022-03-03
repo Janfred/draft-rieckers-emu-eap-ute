@@ -148,9 +148,24 @@ We simply can concatenate the sent and received messages for the MAC calculation
 
 ### General Message format
 
-All messages are encoded in CBOR {{RFC8949}} as maps. A detailed format description will follow with a first implementation.
+All EAP-UTE messages consists of the following parts:
 
-In {{mapkeys}} the different message fields and their assigned mapkey are listed.
+type:
+: one octet to indicate the type of the message
+
+length:
+: two octets indicating the length of the following message payload
+
+payload:
+: the CBOR encoded message payload
+
+MAC:
+: (optional) the message authentication code
+
+
+The message payloads are encoded in CBOR {{RFC8949}} as maps.
+
+In {{mapkeys}} the different message fields, their assigned mapkey and the type are listed.
 
 | Mapkey | Type | Label | Description |
 |--------|------|-------|-------------|
@@ -166,8 +181,8 @@ In {{mapkeys}} the different message fields and their assigned mapkey are listed
 | 10     | bytes | Nonce_S | Server Nonce |
 | 11     | ? | Key_P | Peer's ECDHE key according to the chosen cipher |
 | 12     | ? | Key_S | Server's ECDHE key |
-| 13     | bytes | MAC_S | Server MAC |
-| 14     | bytes | MAC_P | Peer MAC |
+| 13     | null | MAC_S | Indication that Server MAC is included |
+| 14     | null | MAC_P | Indication that Peer MAC is included |
 | 15     | text | PeerId | Peer Identifier |
 | 16     | bytes | OOB-Id | Identifier of the OOB message |
 | 17     | int | RetryInterval | Number of seconds to wait after a failed Completion Exchange |
@@ -329,6 +344,12 @@ Since no authentication has yet been achieved, the server then answers with an E
 
 TODO: Do I need MACs here? What are they really for?
 
+### User-assisted out-of-band step
+
+After the completed Initial Exchange, the peer or the server, depending on the negotiated direction, will generate an out-of-band message.
+
+Details still TBD.
+
 ### Waiting Exchange
 
 The Waiting Exchange is performed, if neither the server nor the peer have received an out-of-band message yet.
@@ -488,7 +509,15 @@ TODO: Reconnect exchange with updated version or cipher suite
 
 ## MAC and OOB calculation and Key derivation
 {: #sec_keys }
-TBD
+
+For the MAC calculation, the exchanged messages up to the current message are concatenated into the "Messages" field. This field consists for each message of the one octet message type, the two-octet length encoding and the CBOR-Encoded message payload. The optional MAC value at the end of the message is ommited for the MAC calculation.
+For the calculation of the MAC_S value, the Messages field also includes the Server Keyshare/Server Completion Response message. For MAC_P the Client Finished message is ommited, so both MAC_P and MAC_S have the same input.
+
+For the following definition \|\| denotes a concatenation.
+
+Messages = Type_1 \|\| Length_1 \|\| Payload_1 \|\| ... \|\| Type_n \|\| Length_n \|\| Payload_n
+
+OOB-Id = H(OOB-Nonce \|\| Messages)
 
 ## Error handling
 
