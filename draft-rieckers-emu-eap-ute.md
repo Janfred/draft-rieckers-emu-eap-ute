@@ -10,12 +10,13 @@ docname: draft-rieckers-emu-eap-ute-latest
 title: "User-assisted Trust Establishment (EAP-UTE)"
 abbrev: "EAP-UTE"
 lang: en
-smart_quotes: no
-pi: [toc, sortrefs, symrefs]
+kw:
+  - EAP-UTE
+  - EAP
+  - IoT
 author:
   - name: Jan-Frederik Rieckers
     org: Deutsches Forschungsnetz | German National Research and Education Network
-    ins: J.-F. Rieckers
     street: Alexanderplatz 1
     code: 10178
     city: Berlin
@@ -45,6 +46,9 @@ informative:
     format:
       TXT: https://www.ietf.org/archive/id/draft-rieckers-emu-eap-noob-observations-00.txt
 
+venue:
+  group: EAP Method Update (emu)
+  mail: emu@ietf.org
 
 --- abstract
 
