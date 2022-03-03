@@ -56,7 +56,7 @@ The Extensible Authentication Protocol (EAP) provides support for multiple authe
 This document defines the EAP-UTE authentication method for a User-assisted Trust Establishment between the peer and the server.
 The EAP method is intended for bootstrapping Internet-of-Things (IoT) devices without preconfigured authentication credentials.
 The trust establishment is achieved by transmitting a one-directional out-of-band message between the peer and the server to authenticate the in-band exchange.
-The peer must have a secondary input or output interface, such as a display, camera, microphone, speaker, blinking light, or light sensor, so dynamically generated messages with tens of bytes in length can be transmitted or received.
+The peer must have a secondary input or output interface, such as a display, camera, microphone, speaker, blinking light, or light sensor, so that dynamically generated messages with tens of bytes in length can be transmitted or received.
 
 --- middle
 
@@ -102,11 +102,12 @@ Depending of the current state of the peer and server, different exchanges are s
 
 If the server or the peer are in the unregistered state, peer and server exchange nonces and keys for the Ephemeral Elliptic Curve Diffie-Hellman.
 This is called the Initial Exchange.
-The Initial Exchange results in a EAP-Failure, since neither the server nor the peer are authenticated.
+The Initial Exchange results in an EAP-Failure, since neither the server nor the peer are authenticated.
 
 After the Initial Exchange, the user-assisted step of trust establishment takes place.
 The user delivers one Out-of-Band message either from the peer to the server or from the server to the peer.
 
+<!--C: Since OOB is used here as an abbreviation, I'd recommend writing "Out-of-Band (OOB)" somewhere beforehand to introduce it. -->
 While peer and server are waiting for completion of the OOB Step, the peer MAY probe the server by reconnecting, to check for successful transmission of the OOB message.
 This probe request will result in a waiting exchange and EAP-Failure, if the server has not yet received the OOB message.
 
@@ -126,7 +127,7 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
     |  |   (ephemeral)    |-------->|    (ephemeral)      |
     |  +------------------+         +---------------------+
     |                                 |    |
-    |User Reset     .-----------------'    | OOB Input
+    | User Reset    .-----------------'    | OOB Input
     |               | Completion           |
     |               |                      |
     |               V                      V
@@ -138,7 +139,7 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
 
 ## Messages
 
-The packets are formated as follows:
+The packets are formatted as follows:
 
 TODO: My current idea: Message Type as Byte, Length of CBOR as 2 bytes, CBOR encoding. If MACs are included in the message, they are just appended.
 This allows the MAC to be calculated of all message contents.
@@ -148,7 +149,7 @@ We simply can concatenate the sent and received messages for the MAC calculation
 
 ### General Message format
 
-All EAP-UTE messages consists of the following parts:
+All EAP-UTE messages consist of the following parts:
 
 type:
 : one octet to indicate the type of the message
@@ -198,17 +199,17 @@ EAP-NOOB {{RFC9140}} uses JSON as encoding. Problems of using JSON are discussed
 
 For this specification, the following encodings have been evaluated:
 
-* Static encoding  
-  This allows a minimal number of bytes and requires minimal amount of parsing, since format and order of the message fields is exactly specified.
-  However, this encoding severely effects the extensibility, unless a specific extension format is used.
+* Static encoding
+  This allows a minimal number of bytes and requires a minimal amount of parsing, since format and order of the message fields is specified exactly.
+  However, this encoding severely affects the extensibility, unless a specific extension format is used.
   This specification also has optional fields in some message types, so this would also have to be addressed.
-* CBOR with static fields (e.g. Array)  
-  This approach has a slightly higher number of bytes then the static encoding, but allows for an easier extensibility.
+* CBOR with static fields (e.g. Array)
+  This approach has a slightly higher number of bytes than the static encoding, but allows for an easier extensibility.
   The required fields can be specified, so the order of the protocol field is static and a parser has minimal effort to parse the protocol fields.
   However, this might be problematic in future protocol versions, when new fields are introduced.
   Like with static encoding, this also requires a mechanism for optional fields in the different message types.
-* CBOR map with numeric keys  
-  To mitigate the problems of optional fields, while keeping the parsing effort low, CBOR maps with numeric keys can be used.
+* CBOR map with numeric keys
+  To mitigate the problems of optional fields while keeping the parsing effort low, CBOR maps with numeric keys can be used.
   All protocol fields are identified by a unique identifier, specified in this document.
   A parser can simply loop through the CBOR map. Since CBOR maps have a canonical order, minimal implementations may rely on this fact to parse the information needed.
 
@@ -253,7 +254,7 @@ However, this is just a first draft and suggestions for other message formats ar
 
 ### Client Finished
 * Message Type: 4
-* Reqired Attributes:
+* Required Attributes:
   * MAC_P
 
 ### Client Completion Request
@@ -294,7 +295,7 @@ The client will send a Client Completion Request to initiate the Waiting/Complet
 
 If the peer is in the Registered state, it may choose between three different Reconnect Exchanges.
 If the peer wants a reconnect without new key exchanges, it will send a Client Completion Request, starting the Reconnect Exchange without ECDHE.
-If the peer wants to reconnect with new key exchanges, it will send a Client Key Share packet, which starts the Reconnect Exchange with new ECDHE exchange.
+If the peer wants to reconnect with new key exchanges, it will send a Client Key Share packet, which starts the Reconnect Exchange with a new ECDHE exchange.
 The third option is a reconnect with a new version or cipher, this is TBD.
 
 ### Initial Exchange
@@ -346,13 +347,16 @@ TODO: Do I need MACs here? What are they really for?
 
 ### User-assisted out-of-band step
 
+<!--C: This probably isn't that relevant at such an early stage, but I thought I should mention it nonetheless:
+       This document uses "Out-of-Band", "out-of-band" (different capitalization) and "OOB" interchangeably — maybe simply using OOB
+       after "Out-of-Band (OOB)" (as suggested above) would lead to greater consistency. -->
 After the completed Initial Exchange, the peer or the server, depending on the negotiated direction, will generate an out-of-band message.
 
 Details still TBD.
 
 ### Waiting Exchange
 
-The Waiting Exchange is performed, if neither the server nor the peer have received an out-of-band message yet.
+The Waiting Exchange is performed if neither the server nor the peer have received an out-of-band message yet.
 
 The peer probes the server with a Client Completion Request.
 In this packet the peer omits the optional OOB-Id field.
@@ -390,7 +394,7 @@ As in the Waiting Exchange, the peer probes the server with a Client Completion 
 The nonce of the previous Client Completion Requests which did not lead to a completion MAY be repeated.
 If the peer has received an OOB message, the peer will include the OOB-Id in the Completion Request.
 If the peer did not include an OOB-Id, the server will include the OOB-Id of its received OOB message.
-In the unlikely case, that both directions are negotiated and an OOB message is delivered from the peer to the server and from the server to the peer at the same time, as a tiebreaker the OOB message from the server to the peer is chosen.
+In the unlikely case that both directions are negotiated and an OOB message is delivered from the peer to the server and from the server to the peer at the same time, the OOB message from the server to the peer is chosen as a tiebreaker.
 
 The server generates a new nonce, calculates MAC_S according to {{sec_keys}} and sends a Server Completion Response to the peer.
 
@@ -434,13 +438,13 @@ The Reconnect Exchange is performed if both the peer and the server are in the r
 For a reconnect without new exchanging of ECDHE keys, the client will answer to the Server Greeting with a Client Completion Request, including the PeerId and a nonce.
 
 To distinguish a Reconnect Exchange from a Waiting/Completion Exchange, the server will look up the saved states for the transmitted PeerId.
-If the server has a persistent state saved, it will chose the Reconnect Exchange, otherwise it will choose the Waiting Exchange.
+If the server has a persistent state saved, it will choose the Reconnect Exchange, otherwise it will choose the Waiting Exchange.
 
 The server will then generate a nonce and the MAC_S value according to {{sec_keys}} and send a Server Completion Response with the nonce and MAC_S value.
 
 The peer then sends a Client Finished message, containing the computed MAC_P value.
 
-The server then answers with an EAP-Success
+The server then answers with an EAP-Success.
 
     EAP Peer            Authenticator   EAP Server
       |                         |             |
@@ -510,8 +514,8 @@ TODO: Reconnect exchange with updated version or cipher suite
 ## MAC and OOB calculation and Key derivation
 {: #sec_keys }
 
-For the MAC calculation, the exchanged messages up to the current message are concatenated into the "Messages" field. This field consists for each message of the one octet message type, the two-octet length encoding and the CBOR-Encoded message payload. The optional MAC value at the end of the message is ommited for the MAC calculation.
-For the calculation of the MAC_S value, the Messages field also includes the Server Keyshare/Server Completion Response message. For MAC_P the Client Finished message is ommited, so both MAC_P and MAC_S have the same input.
+For the MAC calculation, the exchanged messages up to the current message are concatenated into the "Messages" field. This field consists for each message of the one-octet message type, the two-octet length encoding and the CBOR-Encoded message payload. The optional MAC value at the end of the message is omitted for the MAC calculation.
+For the calculation of the MAC_S value, the Messages field also includes the Server Keyshare/Server Completion Response message. For MAC_P the Client Finished message is omitted, so both MAC_P and MAC_S have the same input.
 
 For the following definition \|\| denotes a concatenation.
 
@@ -561,9 +565,9 @@ EAP-UTE uses CBOR instead of JSON. More text TBD.
 
 ## Implicit transmission of peer state
 
-In EAP-NOOB all EAP exchanges start with the same common handshake, which serves mainly the purpose to detect the current peer state.
+In EAP-NOOB all EAP exchanges start with the same common handshake, which mainly serves the purpose of detecting the current peer state.
 
-The server initiates the EAP conversation by sending a Type 1 message without any further content, to which the peer responds by sending it's PeerId, if it was assigned, and it's PeerState.
+The server initiates the EAP conversation by sending a Type 1 message without any further content, to which the peer responds by sending its PeerId, if it was assigned, and its PeerState.
 
 In EAP-UTE, this peer state transmission is done implicitly by the peer's choice of response to the Server Greeting.
 
