@@ -66,12 +66,11 @@ This document describes a method for registration, authentication, and key deriv
 These devices may come without preconfigured trust anchors or have no possibility to receive a network configuration that enables them to connect securely to a network.
 
 This document uses the basic design principle behind the EAP-NOOB method described in {{RFC9140}} and aims to improve some key elements of the protocol to better address the needs for IoT devices.
-This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the message.
+This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the exchanged messages.
 
 TODO: The EAP-UTE protocol also allows for extensions, they are still TBD. Basically, the messages can just include additional fields with newly defined meanings.
 
 The possible problems of EAP-NOOB are discussed in {{I-D.draft-rieckers-emu-eap-noob-observations}}. This document provides a specification which aims to address these concerns.
-
 
 # Conventions and Definitions
 
@@ -108,12 +107,12 @@ After the Initial Exchange, the user-assisted step of trust establishment takes 
 The user delivers one OOB message either from the peer to the server or from the server to the peer.
 
 While peer and server are waiting for completion of the OOB Step, the peer MAY probe the server by reconnecting, to check for successful transmission of the OOB message.
-This probe request will result in a waiting exchange and EAP-Failure, if the server has not yet received the OOB message.
+This probe request will result in a Waiting Exchange and EAP-Failure, if the server has not yet received the OOB message.
 
-If either the server or the peer have received the OOB message, the probe request will result in a completion exchange.
+If either the server or the peer have received the OOB message, the probe request will result in a Completion Exchange.
 In the Completion Exchange, peer and server exchange message authentication codes over the previous in-band messages and the OOB message.
-The completion exchange may result in EAP-Success.
-Once the peer and server have performed a successful completion exchange, both endpoints store the created association in persistent storage.
+The Completion Exchange may result in EAP-Success.
+Once the peer and server have performed a successful Completion Exchange, both endpoints store the created association in persistent storage.
 
 After a successful Completion Exchange, the peer and server can use the Reconnect Exchange, to create a new association with new cryptographic bindings.
 The user-assisted OOB step is not necessary, since the peer and server can infer the mutual authentication by using the persistent data stored after the Completion Exchange.
@@ -138,14 +137,6 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
 
 ## Messages
 
-The packets are formatted as follows:
-
-TODO: My current idea: Message Type as Byte, Length of CBOR as 2 bytes, CBOR encoding. If MACs are included in the message, they are just appended.
-This allows the MAC to be calculated of all message contents.
-The server MAC is sent along with nonces/keys, so an encoding like this allows the MAC to include the nonce, the server key and possible further attributes of future extensions without need for an overly complex or error prone calculation.
-We simply can concatenate the sent and received messages for the MAC calculation.
-
-
 ### General Message format
 
 All EAP-UTE messages consist of the following parts:
@@ -157,11 +148,15 @@ length:
 : two octets indicating the length of the following message payload
 
 payload:
-: the CBOR encoded message payload
+: the CBOR encoded message
 
 MAC:
 : (optional) the message authentication code
 
+Remark from the author:  
+This format is just a first draft.
+It allows for a very simple MAC calculation, since the MACs can just consist of the concatenated previous messages.
+This also allows an easy addition of extensions, since the extension payloads are automatically included in the MAC calculation, if they are part of the CBOR payload.
 
 The message payloads are encoded in CBOR {{RFC8949}} as maps.
 
@@ -189,6 +184,10 @@ In {{mapkeys}} the different message fields, their assigned mapkey and the type 
 | 18     | Map | AdditionalServerInfo | Additional information about the server. TODO: not sure about this yet. |
 {: #mapkeys title="Mapkeys for CBOR encoding"}
 
+The inclusion of MAC_S or MAC_P indicate that the MAC value is appended to the message.
+The length of the MAC field is determined by the used cryptosuite.
+MAC_S and MAC_P MUST NOT both be present in a message.
+
 TODO: Depending on the definition of the Cipher Suites, the format for Ciphers and Cipher might change, as well as Key_P and Key_S.
 The most immediate choice would be COSE {{RFC8152}}. But maybe there are better choices out there.
 
@@ -199,9 +198,9 @@ EAP-NOOB {{RFC9140}} uses JSON as encoding. Problems of using JSON are discussed
 For this specification, the following encodings have been evaluated:
 
 * Static encoding  
-  This allows a minimal number of bytes and requires a minimal amount of parsing, since format and order of the message fields is specified exactly.
+  This allows a minimal number of bytes and requires a minimal amount of parsing, since the format and order of the message fields is specified exactly.
   However, this encoding severely affects the extensibility, unless a specific extension format is used.
-  This specification also has optional fields in some message types, so this would also have to be addressed.
+  The specification of this protoco of this protocoll also has optional fields in some message types, so this would also have to be addressed.
 * CBOR with static fields (e.g. Array)  
   This approach has a slightly higher number of bytes than the static encoding, but allows for an easier extensibility.
   The required fields can be specified, so the order of the protocol field is static and a parser has minimal effort to parse the protocol fields.
@@ -288,7 +287,7 @@ Depending on the peer state, the peer chooses the next packet.
 If the peer is in the unregistered state and does not yet have an ephemeral or persistent state, it chooses the Client Greeting, which starts the Initial Handshake.
 
 If the peer is in the Waiting for OOB or OOB Received state, the Initial Exchange has completed and the OOB step needs to take place.
-If the negotiated direction is from server to peer, the peer SHOULD NOT try to reconnect, unless the peer received an OOB message.
+If the negotiated direction is from server to peer, the peer SHOULD NOT try to reconnect until the peer received an OOB message.
 If the negotiated direction is from peer to server, the peer can probe the server at regular intervals to check if the OOB message to the server has been delivered.
 The client will send a Client Completion Request to initiate the Waiting/Completion Exchange.
 
@@ -301,9 +300,9 @@ The third option is a reconnect with a new version or cipher, this is TBD.
 
 The Initial Exchange comprises of the following packets:
 
-After the server greeting common to all exchanges, the peer sends a Client Greeting packet.
+After the Server Greeting common to all exchanges, the peer sends a Client Greeting packet.
 The Client Greeting contains the client's chosen protocol version, cipher and direction of the OOB message.
-The client MUST only choose values for these fields offered by the server before.
+The client MUST only choose values for these fields offered by the server in it's Server Greeting.
 Additionally, the Client Greeting contains PeerInfo, a nonce and the peer's ECDHE public key.
 
 The server will then answer with a Server Keyshare packet.
@@ -510,7 +509,7 @@ TODO: Reconnect exchange with updated version or cipher suite
 ## MAC and OOB calculation and Key derivation
 {: #sec_keys }
 
-For the MAC calculation, the exchanged messages up to the current message are concatenated into the "Messages" field. This field consists for each message of the one octet message type, the two-octet length encoding and the CBOR-Encoded message payload. The optional MAC value at the end of the message is omitted for the MAC calculation.
+For the MAC calculation, the exchanged messages up to the current message are concatenated into the "Messages" field. This field consists for each message of the one octet message type, the two octet encoding of the length and the CBOR encoded message payload. The optional MAC value at the end of the message is omitted for the MAC calculation.
 For the calculation of the MAC_S value, the Messages field also includes the Server Keyshare/Server Completion Response message. For MAC_P the Client Finished message is omitted, so both MAC_P and MAC_S have the same input.
 
 For the following definition \|\| denotes a concatenation.
@@ -518,6 +517,13 @@ For the following definition \|\| denotes a concatenation.
 Messages = Type_1 \|\| Length_1 \|\| Payload_1 \|\| ... \|\| Type_n \|\| Length_n \|\| Payload_n
 
 OOB-Id = H(OOB-Nonce \|\| Messages)
+
+TODO: Calculation of MAC_S/MAC_P
+
+Idea: For initial exchange MAC_S/MAC_P = HMAC(key, Messages), and for completion exchange MAC_S/MAC_P = HMAC(key, prev_MAC_S \|\| prev_MAC_P \|\| Messages)
+
+TODO: Key derivation. Here I have a problem. If I want to send MACs in the initial exchange, I somehow have to make a key derivation already. Maybe this is too costly. Maybe it would be necessary to save a Hash of the previous messages during the InitialExchange and include it in the KDF to cryptographically bind the Server/PeerInfo to the connection.
+This will probably be more clear in the -01 draft version.
 
 ## Error handling
 
