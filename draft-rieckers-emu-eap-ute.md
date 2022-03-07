@@ -68,7 +68,7 @@ These devices may come without preconfigured trust anchors or have no possibilit
 This document uses the basic design principle behind the EAP-NOOB method described in {{RFC9140}} and aims to improve some key elements of the protocol to better address the needs for IoT devices.
 This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the exchanged messages.
 
-TODO: The EAP-UTE protocol also allows for extensions, they are still TBD. Basically, the messages can just include additional fields with newly defined meanings.
+TODO: The EAP-UTE protocol also allows extensions, they are still TBD. Basically, the messages can just include additional fields with newly defined meanings.
 
 The possible problems of EAP-NOOB are discussed in {{I-D.draft-rieckers-emu-eap-noob-observations}}. This document provides a specification which aims to address these concerns.
 
@@ -145,7 +145,7 @@ type:
 : one octet to indicate the type of the message
 
 length:
-: two octets indicating the length of the following message payload
+: two octets indicating the length of the following message payload, not including the optional MAC value
 
 payload:
 : the CBOR encoded message
@@ -155,7 +155,7 @@ MAC:
 
 Remark from the author:  
 This format is just a first draft.
-It allows for a very simple MAC calculation, since the MACs can just consist of the concatenated previous messages.
+It allows a very simple MAC calculation, since the MACs can just consist of the concatenated previous messages.
 This also allows an easy addition of extensions, since the extension payloads are automatically included in the MAC calculation, if they are part of the CBOR payload.
 
 The message payloads are encoded in CBOR {{RFC8949}} as maps.
@@ -169,7 +169,7 @@ In {{mapkeys}} the different message fields, their assigned mapkey and the type 
 | 3      | Array? | Ciphers | The ciphers supported by the server. TODO: Not yet sure how to define them. |
 | 4      | Integer? | Cipher | The cipher selected by the peer |
 | 5      | Integer | Directions | The OOB-Directions supported by the server. 0x01 for peer-to-server, 0x02 for server-to-peer, 0x03 for both |
-| 6      | Integer | Direction | The OOB-Direction selected by the peer. SHOULD be either 0x01 or 0x02 |
+| 6      | Integer | Direction | The OOB-Direction selected by the peer. SHOULD be either 0x01 or 0x02, but MAY be 0x03 for both directions |
 | 7      | Map | ServerInfo | Information about the server, e.g. a URL for OOB-message-submission |
 | 8      | Map | PeerInfo | Information about the peer, e.g. manufacturer/serial number |
 | 9      | bytes | Nonce_P | Peer Nonce |
@@ -186,7 +186,7 @@ In {{mapkeys}} the different message fields, their assigned mapkey and the type 
 
 The inclusion of MAC_S or MAC_P indicate that the MAC value is appended to the message.
 The length of the MAC field is determined by the used cryptosuite.
-MAC_S and MAC_P MUST NOT both be present in a message.
+A message MUST NOT contain both MAC_S and MAC_P, only one of these values can be present in a message.
 
 TODO: Depending on the definition of the Cipher Suites, the format for Ciphers and Cipher might change, as well as Key_P and Key_S.
 The most immediate choice would be COSE {{RFC8152}}. But maybe there are better choices out there.
@@ -195,14 +195,14 @@ The most immediate choice would be COSE {{RFC8152}}. But maybe there are better 
 
 EAP-NOOB {{RFC9140}} uses JSON as encoding. Problems of using JSON are discussed in section 2.1 of {{I-D.draft-rieckers-emu-eap-noob-observations}}.
 
-For this specification, the following encodings have been evaluated:
+For this specification, the following encodings have been considered:
 
 * Static encoding  
   This allows a minimal number of bytes and requires a minimal amount of parsing, since the format and order of the message fields is specified exactly.
   However, this encoding severely affects the extensibility, unless a specific extension format is used.
-  The specification of this protoco of this protocoll also has optional fields in some message types, so this would also have to be addressed.
+  The specification of this protocol also has optional fields in some message types, so this would also have to be addressed.
 * CBOR with static fields (e.g. Array)  
-  This approach has a slightly higher number of bytes than the static encoding, but allows for an easier extensibility.
+  This approach has a slightly higher number of bytes than the static encoding, but allows an easier extensibility.
   The required fields can be specified, so the order of the protocol field is static and a parser has minimal effort to parse the protocol fields.
   However, this might be problematic in future protocol versions, when new fields are introduced.
   Like with static encoding, this also requires a mechanism for optional fields in the different message types.
@@ -293,7 +293,7 @@ If the peer is in the unregistered state and does not yet have an ephemeral or p
 If the peer is in the Waiting for OOB or OOB Received state, the Initial Exchange has completed and the OOB step needs to take place.
 If the negotiated direction is from server to peer, the peer SHOULD NOT try to reconnect until the peer received an OOB message.
 If the negotiated direction is from peer to server, the peer can probe the server at regular intervals to check if the OOB message to the server has been delivered.
-The client will send a Client Completion Request to initiate the Waiting/Completion Exchange.
+The peer will send a Client Completion Request to initiate the Waiting/Completion Exchange.
 
 If the peer is in the Registered state, it may choose between three different Reconnect Exchanges.
 If the peer wants a reconnect without new key exchanges, it will send a Client Completion Request, starting the Reconnect Exchange without ECDHE.
@@ -305,8 +305,9 @@ The third option is a reconnect with a new version or cipher, this is TBD.
 The Initial Exchange comprises of the following packets:
 
 After the Server Greeting common to all exchanges, the peer sends a Client Greeting packet.
-The Client Greeting contains the client's chosen protocol version, cipher and direction of the OOB message.
-The client MUST only choose values for these fields offered by the server in it's Server Greeting.
+The Client Greeting contains the peer's chosen protocol version, cipher and direction of the OOB message.
+The peer MUST only choose values for these fields offered by the server in it's Server Greeting.
+For Direction the peer SHOULD choose either 0x01 or 0x02 if the server offered 0x03.
 Additionally, the Client Greeting contains PeerInfo, a nonce and the peer's ECDHE public key.
 
 The server will then answer with a Server Keyshare packet.
@@ -434,7 +435,7 @@ The server then answers with an EAP-Success.
 
 The Reconnect Exchange is performed if both the peer and the server are in the registered state.
 
-For a reconnect without new exchanging of ECDHE keys, the client will answer to the Server Greeting with a Client Completion Request, including the PeerId and a nonce.
+For a reconnect without new exchanging of ECDHE keys, the peer will answer to the Server Greeting with a Client Completion Request, including the PeerId and a nonce.
 
 To distinguish a Reconnect Exchange from a Waiting/Completion Exchange, the server will look up the saved states for the transmitted PeerId.
 If the server has a persistent state saved, it will choose the Reconnect Exchange, otherwise it will choose the Waiting Exchange.
@@ -583,7 +584,7 @@ However, this increased number of bytes is negligible in comparison to the eleva
 ## Extensibility
 
 The EAP-NOOB standard does not specify how to deal with unexpected labels in the message, which could be used to extend the protocol.
-This specification explicitly allows for extensions. They are still TBD.
+This specification will explicitly allow extensions. They are still TBD.
 
 --- back
 
