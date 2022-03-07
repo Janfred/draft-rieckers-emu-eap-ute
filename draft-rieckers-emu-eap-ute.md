@@ -26,9 +26,9 @@ author:
     uri: www.dfn.de
 
 normative:
-  RFC2104: hmac
+  #RFC2104: hmac
   RFC3748: eap
-  RFC7542: nai
+  #RFC7542: nai
   RFC8949: cbor
 
 informative:
@@ -250,10 +250,14 @@ However, this is just a first draft and suggestions for other message formats ar
   * AdditionalServerInfo?
   * RetryInterval?
 
+TODO: Maybe make MAC_S optional, if used in Initial Exchange
+
 ### Client Finished
 * Message Type: 4
 * Required Attributes:
   * MAC_P
+
+TODO: Maybe make MAC_P optional, if used in Initial Exchange
 
 ### Client Completion Request
 * Message Type: 5
@@ -341,7 +345,7 @@ Since no authentication has yet been achieved, the server then answers with an E
       |                                       |
 {: #initialexchange title="Initial Exchange"}
 
-TODO: Do I need MACs here? What are they really for?
+TODO: Do I need MACs here? What are they really for? (see {{sec_keys}} for more thoughts on this)
 
 ### User-assisted out-of-band step
 
@@ -522,7 +526,7 @@ TODO: Calculation of MAC_S/MAC_P
 
 Idea: For initial exchange MAC_S/MAC_P = HMAC(key, Messages), and for completion exchange MAC_S/MAC_P = HMAC(key, prev_MAC_S \|\| prev_MAC_P \|\| Messages)
 
-TODO: Key derivation. Here I have a problem. If I want to send MACs in the initial exchange, I somehow have to make a key derivation already. Maybe this is too costly. Maybe it would be necessary to save a Hash of the previous messages during the InitialExchange and include it in the KDF to cryptographically bind the Server/PeerInfo to the connection.
+TODO: Key derivation. Here I have a problem. If I want to send MACs in the initial exchange, I somehow have to make a key derivation already. Maybe this is too costly. Maybe it would only be necessary to save a Hash of the previous messages during the InitialExchange and include it in the KDF to cryptographically bind the Server/PeerInfo to the connection. This way, the Initial Exchange wont have MACs, the integrity check is done completely by exchanging of MACs during the Completion Exchange.
 This will probably be more clear in the -01 draft version.
 
 ## Error handling
