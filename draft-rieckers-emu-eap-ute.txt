@@ -4,8 +4,8 @@
 
 Internet Engineering Task Force                           J.-F. Rieckers
 Internet-Draft                                                       DFN
-Intended status: Standards Track                            7 March 2022
-Expires: 8 September 2022
+Intended status: Standards Track                            15 June 2022
+Expires: 17 December 2022
 
 
               User-assisted Trust Establishment (EAP-UTE)
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 September 2022.
+   This Internet-Draft will expire on 17 December 2022.
 
 Copyright Notice
 
@@ -89,7 +89,11 @@ Table of Contents
        3.3.3.  Waiting Exchange
        3.3.4.  Completion Exchange
        3.3.5.  Reconnect Exchange
+       3.3.6.  Upgrade Exchange
      3.4.  MAC and OOB calculation and Key derivation
+       3.4.1.  MAC Calculation
+       3.4.2.  Key derivation
+       3.4.3.  Updating of keying materials
      3.5.  Error handling
    4.  Security Considerations
      4.1.  EAP Security Claims
@@ -219,9 +223,9 @@ Table of Contents
 
    All EAP-UTE messages consist of the following parts:
 
-   type:  one octet to indicate the type of the message
+   type:  one byte to indicate the type of the message
 
-   length:  two octets indicating the length of the following message
+   length:  two bytes indicating the length of the following message
       payload, not including the optional MAC value
 
    payload:  the CBOR encoded message
@@ -369,11 +373,11 @@ Table of Contents
 
       -  Ciphers
 
-      -  ServerInfo
-
       -  Directions
 
    *  Optional Attributes:
+
+      -  ServerInfo
 
       -  RetryInterval?
 
@@ -387,10 +391,6 @@ Table of Contents
 
       -  Cipher
 
-      -  PeerInfo
-
-      -  Direction
-
       -  Nonce_P
 
       -  Key_P
@@ -398,6 +398,10 @@ Table of Contents
    *  Optional Attributes:
 
       -  PeerId
+
+      -  PeerInfo
+
+      -  Direction
 
 3.2.4.  Server Keyshare
 
@@ -409,9 +413,9 @@ Table of Contents
 
       -  Nonce_S
 
-      -  MAC_S
-
    *  Optional Attributes:
+
+      -  MAC_S
 
       -  PeerId
 
@@ -419,17 +423,13 @@ Table of Contents
 
       -  RetryInterval?
 
-   TODO: Maybe make MAC_S optional, if used in Initial Exchange
-
 3.2.5.  Client Finished
 
    *  Message Type: 4
 
-   *  Required Attributes:
+   *  Optional Attributes:
 
       -  MAC_P
-
-   TODO: Maybe make MAC_P optional, if used in Initial Exchange
 
 3.2.6.  Client Completion Request
 
@@ -514,11 +514,11 @@ Table of Contents
    public key.
 
    The server will then answer with a Server Keyshare packet.  The
-   packet contains a newly allocated PeerId, the server's nonce and
-   ECDHE public key and the message authentication code MAC_S.
+   packet contains a newly allocated PeerId, the server's nonce and the
+   ECDHE public key.
 
-   The peer then answers with a Client Finished packet, containing the
-   peer's message authentication code MAC_P.
+   The peer then answers with a Client Finished packet without any
+   payload.
 
    Since no authentication has yet been achieved, the server then
    answers with an EAP-Failure.
@@ -542,19 +542,16 @@ Table of Contents
      |                                       |
      |<- EAP-Request/EAP-UTE ----------------|
      |   SERVER KEYSHARE (3)                 |
-     |   PeerId, Key_S, Nonce_S, MAC_S       |
+     |   PeerId, Key_S, Nonce_S              |
      |                                       |
      |-- EAP-Response/EAP-UTE -------------->|
      |   CLIENT FINISHED (4)                 |
-     |   MAC_P                               |
+     |                                       |
      |                                       |
      |<- EAP-Failure ------------------------|
      |                                       |
 
                          Figure 2: Initial Exchange
-
-   TODO: Do I need MACs here?  What are they really for? (see
-   Section 3.4 for more thoughts on this)
 
 3.3.2.  User-assisted out-of-band step
 
@@ -712,10 +709,11 @@ Table of Contents
    The server will also generate a new ECDHE key, a nonce and compute
    MAC_S according to Section 3.4.
 
-   The peer will then calculate the MAC_P value and send a Client
-   Finished message to the server.
+   The peer will then calculate the MACs and keying material according
+   to Section 3.4.3 and send a Client Finished message to the server,
+   including its MAC_P value.
 
-   The server then answers with an EAP-Success.
+   The server checks the MAC_P value and answers with an EAP-Success.
 
    EAP Peer            Authenticator   EAP Server
      |                         |             |
@@ -745,42 +743,241 @@ Table of Contents
 
             Figure 6: Reconnect Exchange with new ECDHE exchange
 
-   TODO: Reconnect exchange with updated version or cipher suite
+3.3.6.  Upgrade Exchange
+
+   The Upgrade Exchange is performed to upgrade either the EAP-UTE
+   version or the used cipher suite, or refresh the cryptographic keying
+   material.
+
+   A client may choose to perform this exchange instead of a reconnect
+   exchange.  The client SHOULD only choose this if the server offers a
+   better version or cipher suite in its Server Greeting or if the
+   current set of cryptographic keys has been used for an application
+   specific amount of reconnect exchanges or time.
+
+   If the client cooses the Upgrade Exchange, it answers to the Server
+   Greeting with a Client Greeting and includes the PeerId field.  The
+   server will look up the PeerId and, if a persistent association is
+   found, answer with its Server Keyshare, including the optional MAC_S
+   field, calculated according to Section 3.4.
+
+   The peer will then calculate the MACs and keying material according
+   to Section 3.4.3 and send a Client Finished message to the server,
+   including its MAC_P value.
+
+   The server checks the MAC_P value of the client and answers with an
+   EAP-Success.  Afterwards the server updates the association stored
+   for the client.
+
+   EAP Peer            Authenticator   EAP Server
+     |                         |             |
+     |<- EAP-Request/Identity -|             |
+     |                                       |
+     |-- EAP-Response/Identity ------------->|
+     |                                       |
+     |<- EAP-Request/EAP-UTE ----------------|
+     |   SERVER GREETING (1)                 |
+     |   Versions, Ciphers, ServerInfo,      |
+     |   Directions                          |
+     |                                       |
+     |-- EAP-Response/EAP-UTE -------------->|
+     |   CLIENT GREETING (2)                 |
+     |   Version, Cipher, PeerInfo,          |
+     |   PeerId, Nonce_P, Key_P              |
+     |                                       |
+     |<- EAP-Request/EAP-UTE ----------------|
+     |   SERVER KEYSHARE (3)                 |
+     |   Key_S, Nonce_S, MAC_S               |
+     |                                       |
+     |-- EAP-Response/EAP-UTE -------------->|
+     |   CLIENT FINISHED (4)                 |
+     |   MAC_P                               |
+     |                                       |
+     |<- EAP-Failure ------------------------|
+     |                                       |
+
+                         Figure 7: Upgrade Exchange
 
 3.4.  MAC and OOB calculation and Key derivation
 
+3.4.1.  MAC Calculation
+
    For the MAC calculation, the exchanged messages up to the current
    message are concatenated into the "Messages" field.  This field
-   consists for each message of the one octet message type, the two
-   octet encoding of the length and the CBOR encoded message payload.
-   The optional MAC value at the end of the message is omitted for the
-   MAC calculation.  For the calculation of the MAC_S value, the
-   Messages field also includes the Server Keyshare/Server Completion
-   Response message.  For MAC_P the Client Finished message is omitted,
-   so both MAC_P and MAC_S have the same input.
+   consists for each message of the one byte message type, the two byte
+   encoding of the length and the CBOR encoded message payload.  The
+   optional MAC value at the end of the message is omitted.
 
    For the following definition || denotes a concatenation.
 
    Messages = Type_1 || Length_1 || Payload_1 || ... || Type_n ||
    Length_n || Payload_n
 
-   OOB-Id = H(OOB-Nonce || Messages)
+   The Messages field is calculated separately for each exchange, i.e.
+   the Messages field for the Initial Exchange will include the Server
+   Greeting, Client Greeting, Server Keyshare and Client Completion
+   request,
 
-   TODO: Calculation of MAC_S/MAC_P
+   The OOB-Id field is calculated over the concatenation of the OOB-
+   Nonce and the Messages field of the Initial Exchange
 
-   Idea: For initial exchange MAC_S/MAC_P = HMAC(key, Messages), and for
-   completion exchange MAC_S/MAC_P = HMAC(key, prev_MAC_S ||
-   prev_MAC_P || Messages)
+   OOB-Id = H( OOB-Nonce || Messages )
 
-   TODO: Key derivation.  Here I have a problem.  If I want to send MACs
-   in the initial exchange, I somehow have to make a key derivation
-   already.  Maybe this is too costly.  Maybe it would only be necessary
-   to save a Hash of the previous messages during the InitialExchange
-   and include it in the KDF to cryptographically bind the Server/
-   PeerInfo to the connection.  This way, the Initial Exchange wont have
-   MACs, the integrity check is done completely by exchanging of MACs
-   during the Completion Exchange.  This will probably be more clear in
-   the -01 draft version.
+   For the calculation of the MAC_S and MAC_P value, the Messages field
+   will only include the messages sent up to the point of the MAC
+   calculation.  For MAC_S this also includes the Server Keyshare/Server
+   Completion Response message.  For MAC_P the Client Finished message
+   is omitted from the Messages field, so both MAC_P and MAC_S have the
+   same input for the Messages field.
+
+   Depending on the performed Exchange, the MAC calculation differs.
+   For the Completion Exchange, the MAC calculation includes the
+   direction (0x01 for peer to server, 0x02 for server to peer), the
+   Hash of the Messages field of the Initial Exchange, the Messages of
+   the Completion exchange and the OOB-Nonce.
+
+   MAC_P = HMAC(K_p, 0x01 || H(Messages (Initial Exchange)) ||
+   Messages || OOB-Nonce)
+
+   MAC_S = HMAC(K_s, 0x02 || H(Messages (Initial Exchange)) ||
+   Messages || OOB-Nonce)
+
+   For the reconnect exchanges the MAC calculation will include only the
+   direction and the Messages field of the Reconnect Exchange.
+
+   MAC_P = HMAC(K_p, 0x01 || Messages )
+
+   MAC_S = HMAC(K_s, 0x02 || Messages )
+
+3.4.2.  Key derivation
+
+   The key derivation is performed differently depending on the
+   performed Exchange.
+
+    +====================+==============+=================+==========+
+    | Performed Exchange | KDF input    | Value           | Length   |
+    |                    | field        |                 | (bytes)  |
+    +====================+==============+=================+==========+
+    | Completion         | Z            | ECDHE shared    | variable |
+    | Exchange           |              | secret from     |          |
+    |                    |              | Key_P and Key_S |          |
+    +--------------------+--------------+-----------------+----------+
+    |                    | AlgorithmId  | "EAP-UTE"       | 7        |
+    +--------------------+--------------+-----------------+----------+
+    |                    | PartyUInfo   | Nonce_P         | 32       |
+    +--------------------+--------------+-----------------+----------+
+    |                    | PartyVInfo   | Nonce_S         | 32       |
+    +--------------------+--------------+-----------------+----------+
+    |                    | SuppPrivInfo | OOB-Nonce       | 16       |
+    +--------------------+--------------+-----------------+----------+
+    | Reconnect Exchange | Z            | Association_Key | 32       |
+    | without ECDHE      |              |                 |          |
+    +--------------------+--------------+-----------------+----------+
+    |                    | AlgorithmId  | "EAP-UTE"       | 7        |
+    +--------------------+--------------+-----------------+----------+
+    |                    | PartyUInfo   | Nonce_P         | 32       |
+    +--------------------+--------------+-----------------+----------+
+    |                    | PartyVInfo   | Nonce_S         | 32       |
+    +--------------------+--------------+-----------------+----------+
+    |                    | SuppPrivInfo | (null)          | 0        |
+    +--------------------+--------------+-----------------+----------+
+    | Reconnect Exchange | Z            | ECDHE shared    | variable |
+    | with new ECHDE     |              | secret from     |          |
+    | exchange or        |              | Key_P and Key_S |          |
+    | cryptosuite change |              |                 |          |
+    +--------------------+--------------+-----------------+----------+
+    |                    | AlgorithmId  | "EAP-UTE"       | 7        |
+    +--------------------+--------------+-----------------+----------+
+    |                    | PartyUInfo   | Nonce_P         | 32       |
+    +--------------------+--------------+-----------------+----------+
+    |                    | PartyVInfo   | Nonce_S         | 32       |
+    +--------------------+--------------+-----------------+----------+
+    |                    | SuppPrivInfo | Association_Key | 32       |
+    +--------------------+--------------+-----------------+----------+
+
+                                 Table 2
+
+   The output of the key derivation also depends on the used exchange
+   method.
+
+     +=====================+============+=================+=========+
+     | Performed Exchange  | KDF output | Used as         | Length  |
+     |                     | bytes      |                 | (bytes) |
+     +=====================+============+=================+=========+
+     | Completion Exchange | 0..63      | MSK             | 64      |
+     | or Upgrade Exchange |            |                 |         |
+     +---------------------+------------+-----------------+---------+
+     |                     | 64..127    | EMSK            | 64      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 128..191   | AMSK            | 64      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 192..223   | MethodId        | 32      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 224..255   | K_s             | 32      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 256..287   | K_p             | 32      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 288..319   | Association_Key | 32      |
+     +---------------------+------------+-----------------+---------+
+     | Reconect exchanges  | 0..63      | MSK             | 64      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 64..127    | EMSK            | 64      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 128..191   | AMSK            | 64      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 192..223   | MethodId        | 32      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 224..255   | K_s             | 32      |
+     +---------------------+------------+-----------------+---------+
+     |                     | 256..287   | K_p             | 32      |
+     +---------------------+------------+-----------------+---------+
+
+                                 Table 3
+
+3.4.3.  Updating of keying materials
+
+   The client and server commit to new keying material at different
+   positions in the protocol.  If the final Client Finished message is
+   lost, this leads to the client committing to the change and the
+   server keeping the old state.
+
+   To circumvent this issue, the client will save the previous keying
+   material until the change is authenticated by a following reconnect
+   exchange.
+
+   Upon Reception of the MAC_S value from the server in a Reconnect or
+   Upgrade Exchange, the client will perform the following steps:
+
+   *  The client will execute the key derivation using the current
+      Association_Key and calculate the MAC_S value.  If the received
+      MAC_S value matches the locally computed one, the client purges
+      the Prev_Association_Key, Prev_Cipher and Prev_Version values, if
+      they are present.  The previous values can be purged since this
+      authentication proves that the server committed to the state
+      change in a previous Upgrade Exchange.  Afterwards the client
+      calculates the MAC_P value and sends the Client Finished message.
+
+   *  If the MAC_S value does not match, and the Prev_* values are
+      empty, the client sends an error message and aborts the key
+      derivation.
+
+   *  The client will execute the key derivation using the
+      Prev_Association_Key and calculate the MAC_S value.  If the
+      received MAC_S value matches the new locally computed MAC_S, this
+      indicates that the server has not commited to a previous update of
+      cryptographic keys in the last Upgrade Exchange.  As a result, the
+      client will move the values of Prev_Association_Key, Prev_Cipher
+      and Prev_Version values to Association_Key, Cipher and Version and
+      pures the Prev_* values.  Afterwards the client calculates the
+      MAC_P value and sends the Client Finished message.
+
+   *  If the second MAC_S value did not match either, the client sends
+      an error message and aborts the key derivation.
+
+   *  Finally, if the current exchange is an Upgrade Exchange, the
+      client will save the newly generated Association_Key along with
+      the current cipher and version into the persistent storage.  The
+      previous values of these fields are moved to the Prev_* slots.
 
 3.5.  Error handling
 
@@ -882,9 +1079,9 @@ Table of Contents
    [I-D.draft-rieckers-emu-eap-noob-observations]
               Rieckers, J., "Observations about EAP-NOOB (RFC 9140)",
               Work in Progress, Internet-Draft, draft-rieckers-emu-eap-
-              noob-observations-00, 2022,
-              <https://www.ietf.org/archive/id/draft-rieckers-emu-eap-
-              noob-observations-00.txt>.
+              noob-observations-00, 7 March 2022,
+              <https://datatracker.ietf.org/doc/html/draft-rieckers-emu-
+              eap-noob-observations-00>.
 
    [RFC8152]  Schaad, J., "CBOR Object Signing and Encryption (COSE)",
               RFC 8152, DOI 10.17487/RFC8152, July 2017,
