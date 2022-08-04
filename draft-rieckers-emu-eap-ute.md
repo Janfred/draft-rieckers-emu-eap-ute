@@ -129,19 +129,16 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
 
 ### General Message format
 
-All EAP-UTE messages consist of the following parts:
+All EAP-UTE messages consist of a CBOR Sequence with the following elements
 
 type:
-: one byte to indicate the type of the message
-
-length:
-: two bytes indicating the length of the following message payload, not including the optional MAC value
+: integer to indicate the type of the message
 
 payload:
-: the CBOR encoded message
+: a byte-string containing the CBOR encoded map
 
 MAC:
-: (optional) the message authentication code
+: an optional byte-string containing the message authentication code
 
 Remark from the author:<br/>
 This format is just a first draft.
@@ -542,14 +539,15 @@ Afterwards the server updates the association stored for the client.
 
 ### MAC Calculation
 For the MAC calculation, the exchanged messages up to the current message are concatenated into the "Messages" field.
-This field consists for each message of the one byte message type, the two byte encoding of the length and the CBOR encoded message payload.
+This field consists for each message of the CBOR sequence of the message type and the CBOR encoded message payload as byte-string.
 The optional MAC value at the end of the message is omitted.
 
 For the following definition \|\| denotes a concatenation.
 
 Messages = Type_1 \|\| Length_1 \|\| Payload_1 \|\| ... \|\| Type_n \|\| Length_n \|\| Payload_n
+<!-- TODO: This is still the old TLV syntax, needs to be adjusted to CBOR sequences -->
 
-The Messages field is calculated separately for each exchange, i.e. the Messages field for the Initial Exchange will include the Server Greeting, Client Greeting, Server Keyshare and Client Completion request,
+The Messages field is calculated separately for each exchange, i.e. the Messages field for the Initial Exchange will include the Server Greeting, Client Greeting, Server Keyshare and Client Completion request.
 
 The OOB-Id field is calculated over the concatenation of the OOB-Nonce and the Messages field of the Initial Exchange
 
