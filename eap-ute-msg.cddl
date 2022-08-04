@@ -1,0 +1,110 @@
+start = bytes .cborseq eap-ute-message
+
+eap-ute-message = [
+    eap-ute-payload,
+    ?additional_data: bytes
+]
+
+eap-ute-payload //= ( msg_type: type_error, msg_payload: bytes .cbor payload_error)
+eap-ute-payload //= ( msg_type: type_server_greeting, msg_payload: bytes .cbor payload_server_greeting)
+eap-ute-payload //= ( msg_type: type_client_greeting, msg_payload: bytes .cbor payload_client_greeting)
+eap-ute-payload //= ( msg_type: type_server_keyshare, msg_payload: bytes .cbor payload_server_keyshare)
+eap-ute-payload //= ( msg_type: type_client_finished, msg_payload: bytes .cbor payload_client_finished)
+eap-ute-payload //= ( msg_type: type_client_completion_request, msg_payload: bytes .cbor payload_client_completion_request)
+eap-ute-payload //= ( msg_type: type_server_completion_response, msg_payload: bytes .cbor payload_server_completion_response)
+eap-ute-payload //= ( msg_type: type_client_keyshare, msg_payload: bytes .cbor payload_client_keyshare)
+
+type_error = 0
+payload_error = {
+    element_error,
+}
+
+type_server_greeting = 1
+payload_server_greeting = {
+    element_versions,
+    element_ciphers,
+    element_directions,
+    ?element_server_info,
+    ?element_retry_interval
+}
+
+type_client_greeting = 2
+payload_client_greeting = {
+    element_version,
+    element_cipher,
+    ?element_direction,
+    ?element_peer_info,
+    element_nonce_peer,
+    element_key_peer,
+}
+
+type_server_keyshare = 3
+payload_server_keyshare = {
+    element_key_server,
+    element_nonce_server,
+    ?element_mac_server,
+    ?element_peer_id,
+    ?element_retry_interval,
+}
+
+type_client_finished = 4
+payload_client_finished = {
+    ?element_mac_peer
+}
+
+type_client_completion_request = 5
+payload_client_completion_request = {
+    element_nonce_peer,
+    element_peer_id,
+    ?element_oob_id
+}
+
+type_server_completion_response = 6
+payload_server_completion_response = {
+    element_nonce_server,
+    element_mac_server,
+    ?element_oob_id
+}
+
+type_client_keyshare = 7
+payload_client_keyshare = {
+    element_peer_id,
+    element_nonce_peer,
+    element_key_peer
+}
+
+element_error = ( 0: [ error_code, ?error_message : text ] )
+element_versions = ( 1: [ +version ])
+element_version = (2: version)
+element_ciphers = (3: [ [ +ecdhe_curve ], [ +hash_alg ] ])
+element_cipher = (4: [ecdhe_curve, hash_alg] )
+element_directions = (5: uint .bits directions)
+element_direction = (6: uint .bits directions)
+element_server_info = (7: { * any => any } )
+element_peer_info = (8: { * any => any } )
+element_nonce_peer = (9: bytes .size 32)
+element_nonce_server = (10: bytes .size 32)
+element_key_peer = (11 : $cose_ecdhe_key)
+element_key_server = (12 : $cose_ecdhe_key)
+element_mac_server = (13: nil)
+element_mac_peer = (14: nil)
+element_peer_id = (15: bytes)
+element_oob_id = (16: bytes)
+element_retry_interval = (17: int)
+
+version = 0 / 1
+ecdhe_curve = int
+hash_alg = int
+
+error_code = &(
+    version_downgrade_request: -1
+    unsupported_version: 1
+    unsupported_curve: 2
+    unsupported_hash: 3
+    invalid_ecdhe_key: 4
+)
+
+directions = &(
+    peer-to-server: 0
+    server-to-peer: 1
+)
