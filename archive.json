@@ -1,0 +1,134 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2022-08-23T00:57:43.001712+00:00",
+  "repo": "Janfred/draft-rieckers-emu-eap-ute",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOG0SxYM4z7NkN",
+      "title": "A few formal fixes and suggestions",
+      "url": "https://github.com/Janfred/draft-rieckers-emu-eap-ute/pull/1",
+      "state": "OPEN",
+      "author": "falko17",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "As the title implies, these are only fixes and suggestions in respect to the form, not the content, of the draft. Note that some comments have been left, which are indicated by starting with `<!--C:` and ending with `-->` \u2014 these should be addressed and removed before merging into `main`.",
+      "createdAt": "2022-03-03T23:22:11Z",
+      "updatedAt": "2022-06-15T16:32:50Z",
+      "baseRepository": "Janfred/draft-rieckers-emu-eap-ute",
+      "baseRefName": "main",
+      "baseRefOid": "3e4c893a343998fcbacca371dd7452334468a525",
+      "headRepository": "falko17/draft-rieckers-emu-eap-ute",
+      "headRefName": "suggestions-falko",
+      "headRefOid": "19b95b7dbfff2fd2008dda28176e7baebbaeaacb",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG0SxYM41n9Dq",
+          "commit": {
+            "abbreviatedOid": "19b95b7"
+          },
+          "author": "Janfred",
+          "authorAssociation": "OWNER",
+          "state": "CHANGES_REQUESTED",
+          "body": "See comments inline.",
+          "createdAt": "2022-03-04T00:05:44Z",
+          "updatedAt": "2022-03-04T00:10:20Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "The spaces at the end are needed to force a line break.",
+              "createdAt": "2022-03-04T00:05:44Z",
+              "updatedAt": "2022-03-04T00:10:20Z"
+            },
+            {
+              "originalPosition": 116,
+              "body": "I'd leave the \"as a tiebreaker\" there (see RFC9140, section 3.2.4, paragraph 6), to put an emphasis on the tiebreaker situation.",
+              "createdAt": "2022-03-04T00:09:41Z",
+              "updatedAt": "2022-03-04T00:10:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG0SxYM41n9uU",
+          "commit": {
+            "abbreviatedOid": "19b95b7"
+          },
+          "author": "Janfred",
+          "authorAssociation": "OWNER",
+          "state": "CHANGES_REQUESTED",
+          "body": "See comments",
+          "createdAt": "2022-03-04T00:10:54Z",
+          "updatedAt": "2022-03-04T00:11:18Z",
+          "comments": [
+            {
+              "originalPosition": 61,
+              "body": "Spaces are needed",
+              "createdAt": "2022-03-04T00:10:54Z",
+              "updatedAt": "2022-03-04T00:11:18Z"
+            },
+            {
+              "originalPosition": 68,
+              "body": "Spaces are needed",
+              "createdAt": "2022-03-04T00:11:04Z",
+              "updatedAt": "2022-03-04T00:11:18Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
