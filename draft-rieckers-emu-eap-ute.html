@@ -13,13 +13,13 @@ The EAP method is intended for bootstrapping Internet-of-Things (IoT) devices wi
 The trust establishment is achieved by transmitting a one-directional out-of-band (OOB) message between the peer and the server to authenticate the in-band exchange.
 The peer must have a secondary input or output interface, such as a display, camera, microphone, speaker, blinking light, or light sensor, so that dynamically generated messages with tens of bytes in length can be transmitted or received. 
     " name="description">
-<meta content="xml2rfc 3.13.1" name="generator">
+<meta content="xml2rfc 3.14.2" name="generator">
 <meta content="EAP-UTE" name="keyword">
 <meta content="EAP" name="keyword">
 <meta content="IoT" name="keyword">
 <meta content="draft-rieckers-emu-eap-ute-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.13.1
+  xml2rfc 3.14.2
     Python 3.10.5
     appdirs 1.4.4
     ConfigArgParse 1.5.3
@@ -31,7 +31,6 @@ The peer must have a secondary input or output interface, such as a display, cam
     lxml 4.9.1
     MarkupSafe 2.1.1
     pycountry 22.3.5
-    pyflakes 2.4.0
     PyYAML 6.0
     requests 2.27.1
     setuptools 59.4.0
@@ -372,23 +371,37 @@ ul.empty li, .ulEmpty li {
 
 /* definition lists */
 dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
 }
 dl > dt {
   float: left;
   margin-right: 1em;
+  min-width: 20ch;
+}
+dl.dlNewline > dt {
+  float: none;
 }
 dl > dd {
   margin-bottom: .8em;
-  min-height: 1.3em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
 }
 :is(dl.compact, .dlCompact) > dd {
-  margin-bottom: 0em;
+  margin-bottom: 0;
+}
+:is(dl.compact, .dlCompact) > dd > :is(:first-child, .break:first-child + *) {
+  margin-top: 0;
+}
+:is(dl.compact, .dlCompact) > dd > :is(:last-child) {
+  margin-bottom: 0;
 }
 dl > dd > dl {
   margin-top: 0.5em;
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
-dd.break {
+dl .break {
   display: none;
 }
 
@@ -583,17 +596,18 @@ hr {
   margin: 0;
   font-size: var(--small-font-size);
   line-height: 18px;
-  --identifier-width: 8em;
+  --identifier-width: 15ch;
 }
 #identifiers dt {
   width: var(--identifier-width);
-  margin: 0;
+  min-width: var(--identifier-width);
   clear: left;
   float: left;
   text-align: right;
 }
 #identifiers dd {
-  margin: 0 0 0 calc(1em + var(--identifier-width));
+  margin: 0;
+  margin-left: calc(1em + var(--identifier-width)) !important;
   min-width: 5em;
 }
 #identifiers .authors .author {
@@ -649,7 +663,7 @@ hr {
   margin: 0 10px 0 -25px;
 }
 .references dd {
-  margin-left: 8em;
+  margin-left: 8em !important;
   overflow: auto;
 }
 
@@ -916,16 +930,6 @@ a.toplink {
   margin: 8px 0.5em 0;
 }
 
-/* Fix the dl styling to match the RFC 7992 attributes */
-dl > dt,
-dl.dlParallel > dt {
-  float: left;
-  margin-right: 1em;
-}
-dl.dlNewline > dt {
-  float: none;
-}
-
 /* Provide styling for table cell text alignment */
 table .text-left {
   text-align: left;
@@ -1037,11 +1041,11 @@ svg :is([stroke="fill"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">EAP-UTE</td>
-<td class="right">August 2022</td>
+<td class="right">September 2022</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Rieckers</td>
-<td class="center">Expires 5 February 2023</td>
+<td class="center">Expires 26 March 2023</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1054,12 +1058,12 @@ svg :is([stroke="fill"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-rieckers-emu-eap-ute-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2022-08-04" class="published">4 August 2022</time>
+<time datetime="2022-09-22" class="published">22 September 2022</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2023-02-05">5 February 2023</time></dd>
+<dd class="expires"><time datetime="2023-03-26">26 March 2023</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1110,7 +1114,7 @@ The peer must have a secondary input or output interface, such as a display, cam
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 February 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 March 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1235,6 +1239,14 @@ The peer must have a secondary input or output interface, such as a display, cam
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="xref">6</a>.  <a href="#name-implementation-status" class="xref">Implementation Status</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="xref">6.1</a>.  <a href="#name-server-implementation-of-ea" class="xref">Server Implementation of EAP-UTE</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="xref">6.2</a>.  <a href="#name-client-implementation-in-es" class="xref">Client Implementation in ESP-IDF</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="xref">7</a>.  <a href="#name-differences-to-rfc-9140-eap" class="xref">Differences to RFC 9140 (EAP-NOOB)</a></p>
@@ -1279,7 +1291,7 @@ The peer must have a secondary input or output interface, such as a display, cam
 <p id="section-1-1">This document describes a method for registration, authentication, and key derivation for network-connected devices, especially with low computational power and small or no interaction interfaces, such as devices that are part of the Internet of Things (IoT).
 These devices may come without preconfigured trust anchors or have no possibility to receive a network configuration that enables them to connect securely to a network.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">This document uses the basic design principle behind the EAP-NOOB method described in <span>[<a href="#RFC9140" class="xref">RFC9140</a>]</span> and aims to improve some key elements of the protocol to better address the needs for IoT devices.
-This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the exchanged messages.<a href="#section-1-2" class="pilcrow">¶</a></p>
+This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the exchanged messages and by modifying the message flow.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">TODO: The EAP-UTE protocol also allows extensions, they are still TBD. Basically, the messages can just include additional fields with newly defined meanings.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">The possible problems of EAP-NOOB are discussed in <span>[<a href="#I-D.draft-rieckers-emu-eap-noob-observations" class="xref">I-D.draft-rieckers-emu-eap-noob-observations</a>]</span>. This document provides a specification which aims to address these concerns.<a href="#section-1-4" class="pilcrow">¶</a></p>
 </section>
@@ -1315,7 +1327,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 Each Exchange consists of several EAP request-response pairs.
 In order to give the user time to deliver the OOB message between the peer and the server, at least two separate EAP conversations are needed.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">The overall protocol starts with a version and cryptosuite negotiation and peer detection.
-Depending of the current state of the peer and server, different exchanges are selected.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+Depending on the current state of the peer and server, different exchanges are selected.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.1-4">If the server or the peer are in the unregistered state, peer and server exchange nonces and keys for the Ephemeral Elliptic Curve Diffie-Hellman.
 This is called the Initial Exchange.
 The Initial Exchange results in an EAP-Failure, since neither the server nor the peer are authenticated.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
@@ -1376,21 +1388,22 @@ The user-assisted OOB step is not necessary, since the peer and server can infer
             <dd class="break"></dd>
 <dt id="section-3.2.1-2.3">payload:</dt>
             <dd style="margin-left: 1.5em" id="section-3.2.1-2.4">
-              <p id="section-3.2.1-2.4.1">a byte-string containing the CBOR encoded map<a href="#section-3.2.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-3.2.1-2.4.1">a byte-string containing a CBOR encoded map<a href="#section-3.2.1-2.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.2.1-2.5">MAC:</dt>
+<dt id="section-3.2.1-2.5">additional:</dt>
             <dd style="margin-left: 1.5em" id="section-3.2.1-2.6">
-              <p id="section-3.2.1-2.6.1">an optional byte-string containing the message authentication code<a href="#section-3.2.1-2.6.1" class="pilcrow">¶</a></p>
+              <p id="section-3.2.1-2.6.1">an optional byte-string containing additional information, e.g. a message authentication code, encoded as CBOR map<a href="#section-3.2.1-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
 <p id="section-3.2.1-3">Remark from the author:<br>
 This format is just a first draft.
 It allows a very simple MAC calculation, since the MACs can just consist of the concatenated previous messages.
-This also allows an easy addition of extensions, since the extension payloads are automatically included in the MAC calculation, if they are part of the CBOR payload.<a href="#section-3.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-4">The message payloads are encoded in CBOR <span>[<a href="#RFC8949" class="xref">RFC8949</a>]</span> as maps.<a href="#section-3.2.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-5">In <a href="#mapkeys" class="xref">Table 1</a> the different message fields, their assigned mapkey and the type are listed.<a href="#section-3.2.1-5" class="pilcrow">¶</a></p>
+This also allows an easy addition of extensions, since the extension payloads are automatically included in the MAC calculation, if they are part of the CBOR payload.
+Additionally, the additional section allows for extensions that do not need integrity protection, e.g. for referal to a different server in the background.<a href="#section-3.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-4">The message payloads are encoded in CBOR <span>[<a href="#RFC8949" class="xref">RFC8949</a>]</span> as maps.
+In <a href="#mapkeys" class="xref">Table 1</a> the different message fields, their assigned mapkey and the type are listed.<a href="#section-3.2.1-4" class="pilcrow">¶</a></p>
 <span id="name-mapkeys-for-cbor-encoding"></span><div id="mapkeys">
 <table class="center" id="table-1">
             <caption>
@@ -1420,15 +1433,15 @@ This also allows an easy addition of extensions, since the extension payloads ar
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">3</td>
-                <td class="text-left" rowspan="1" colspan="1">Array?</td>
-                <td class="text-left" rowspan="1" colspan="1">Ciphers</td>
-                <td class="text-left" rowspan="1" colspan="1">The ciphers supported by the server. TODO: Not yet sure how to define them.</td>
+                <td class="text-left" rowspan="1" colspan="1">Array</td>
+                <td class="text-left" rowspan="1" colspan="1">Ciphers*</td>
+                <td class="text-left" rowspan="1" colspan="1">The ECDHE curves and Hash algorithms supported by the server.</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">4</td>
-                <td class="text-left" rowspan="1" colspan="1">Integer?</td>
-                <td class="text-left" rowspan="1" colspan="1">Cipher</td>
-                <td class="text-left" rowspan="1" colspan="1">The cipher selected by the peer</td>
+                <td class="text-left" rowspan="1" colspan="1">Array</td>
+                <td class="text-left" rowspan="1" colspan="1">Cipher*</td>
+                <td class="text-left" rowspan="1" colspan="1">The ECHDE curve and Hash algorithm selected by the peer</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">5</td>
@@ -1468,27 +1481,27 @@ This also allows an easy addition of extensions, since the extension payloads ar
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">11</td>
-                <td class="text-left" rowspan="1" colspan="1">?</td>
-                <td class="text-left" rowspan="1" colspan="1">Key_P</td>
+                <td class="text-left" rowspan="1" colspan="1">Map</td>
+                <td class="text-left" rowspan="1" colspan="1">Key_P**</td>
                 <td class="text-left" rowspan="1" colspan="1">Peer's ECDHE key according to the chosen cipher</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">12</td>
-                <td class="text-left" rowspan="1" colspan="1">?</td>
-                <td class="text-left" rowspan="1" colspan="1">Key_S</td>
+                <td class="text-left" rowspan="1" colspan="1">Map</td>
+                <td class="text-left" rowspan="1" colspan="1">Key_S**</td>
                 <td class="text-left" rowspan="1" colspan="1">Server's ECDHE key</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">13</td>
-                <td class="text-left" rowspan="1" colspan="1">null</td>
-                <td class="text-left" rowspan="1" colspan="1">MAC_S</td>
-                <td class="text-left" rowspan="1" colspan="1">Indication that Server MAC is included</td>
+                <td class="text-left" rowspan="1" colspan="1">null/bytes</td>
+                <td class="text-left" rowspan="1" colspan="1">MAC_S***</td>
+                <td class="text-left" rowspan="1" colspan="1">Indication that Server MAC is included (null value) and byte string in additional section</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">14</td>
-                <td class="text-left" rowspan="1" colspan="1">null</td>
-                <td class="text-left" rowspan="1" colspan="1">MAC_P</td>
-                <td class="text-left" rowspan="1" colspan="1">Indication that Peer MAC is included</td>
+                <td class="text-left" rowspan="1" colspan="1">null/bytes</td>
+                <td class="text-left" rowspan="1" colspan="1">MAC_P***</td>
+                <td class="text-left" rowspan="1" colspan="1">Indication that Peer MAC is included (null value) and byte string in additional section</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">15</td>
@@ -1517,11 +1530,14 @@ This also allows an easy addition of extensions, since the extension payloads ar
             </tbody>
           </table>
 </div>
-<p id="section-3.2.1-7">The inclusion of MAC_S or MAC_P indicate that the MAC value is appended to the message.
-The length of the MAC field is determined by the used cryptosuite.
-A message <span class="bcp14">MUST NOT</span> contain both MAC_S and MAC_P, only one of these values can be present in a message.<a href="#section-3.2.1-7" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-8">TODO: Depending on the definition of the Cipher Suites, the format for Ciphers and Cipher might change, as well as Key_P and Key_S.
-The most immediate choice would be COSE <span>[<a href="#RFC8152" class="xref">RFC8152</a>]</span>. But maybe there are better choices out there.<a href="#section-3.2.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-6">*: The Ciphers field consists of an array of two arrays.
+The first array contains all supported ECDHE curves using the identifiers from the COSE Elliptic Curves registry. The server <span class="bcp14">MUST NOT</span> offer and the peer <span class="bcp14">MUST NOT</span> accept curves not suited for ECDH.
+The second array contains all supported Hash algorithms using the indentifiers from the COSE Algorithms registry. The server <span class="bcp14">MUST</span> only offer and the peer <span class="bcp14">MUST</span> only accept Hash algorithms.
+The Cipher field consists of an array of two items, first the selected ECDHE curve, second the selected Hash algorithm.<a href="#section-3.2.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-7">**: The peer and server Key are encoded as COSE key <span>[<a href="#RFC8152" class="xref">RFC8152</a>]</span>.<a href="#section-3.2.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-8">***: The inclusion of MAC_S or MAC_P map keys with a NULL map value indicate that the MAC value is included in the additional field of the CBOR sequence.
+The MAC field is encoded with the same map key as byte string, its length is determined by the used cryptosuite.<a href="#section-3.2.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-9">A message <span class="bcp14">MUST NOT</span> contain both MAC_S and MAC_P, only one of these values can be present in a message.<a href="#section-3.2.1-9" class="pilcrow">¶</a></p>
 <div id="thoughts-about-the-message-format">
 <section id="section-3.2.1.1">
             <h5 id="name-thoughts-about-the-message-">
@@ -1756,7 +1772,7 @@ However, this is just a first draft and suggestions for other message formats ar
 <p id="section-3.3-1">After reception of the EAP-Response/Identity packet, the server always answers with a Server Greeting packet (Type 1).
 This Server Greeting contains the supported protocol versions, ciphers and OOB directions along with the ServerInfo.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">Depending on the peer state, the peer chooses the next packet.
-If the peer is in the unregistered state and does not yet have an ephemeral or persistent state, it chooses the Client Greeting, which starts the Initial Handshake.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+If the peer is in the unregistered state and thus does not yet have an ephemeral or persistent state, it chooses the Client Greeting, which starts the Initial Handshake.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">If the peer is in the Waiting for OOB or OOB Received state, the Initial Exchange has completed and the OOB step needs to take place.
 If the negotiated direction is from server to peer, the peer <span class="bcp14">SHOULD NOT</span> try to reconnect until the peer received an OOB message.
 If the negotiated direction is from peer to server, the peer can probe the server at regular intervals to check if the OOB message to the server has been delivered.
@@ -1764,7 +1780,7 @@ The peer will send a Client Completion Request to initiate the Waiting/Completio
 <p id="section-3.3-4">If the peer is in the Registered state, it may choose between three different Reconnect Exchanges.
 If the peer wants a reconnect without new key exchanges, it will send a Client Completion Request, starting the Reconnect Exchange without ECDHE.
 If the peer wants to reconnect with new key exchanges, it will send a Client Key Share packet, which starts the Reconnect Exchange with new ECDHE exchange.
-The third option is a reconnect with a new version or cipher, this is TBD.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+If the peer wants to upgrade to a new protocol version or change the used cipher suites, it will send a Client Greeting, starting the Upgrade exchange.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
 <div id="initial-exchange">
 <section id="section-3.3.1">
           <h4 id="name-initial-exchange">
@@ -1774,7 +1790,7 @@ The third option is a reconnect with a new version or cipher, this is TBD.<a hre
 <p id="section-3.3.1-2">After the Server Greeting common to all exchanges, the peer sends a Client Greeting packet.
 The Client Greeting contains the peer's chosen protocol version, cipher and direction of the OOB message.
 The peer <span class="bcp14">MUST</span> only choose values for these fields offered by the server in it's Server Greeting.
-For Direction the peer <span class="bcp14">SHOULD</span> choose either 0x01 or 0x02 if the server offered 0x03.
+For Direction the peer <span class="bcp14">SHOULD</span> choose either 0x01 (peer-to-server) or 0x02 (server-to-peer) if the server offered 0x03 (both directions).
 Additionally, the Client Greeting contains PeerInfo, a nonce and the peer's ECDHE public key.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-3">The server will then answer with a Server Keyshare packet.
 The packet contains a newly allocated PeerId, the server's nonce and the ECDHE public key.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
@@ -1825,7 +1841,11 @@ EAP Peer            Authenticator   EAP Server
 <a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-user-assisted-out-of-band-s" class="section-name selfRef">User-assisted out-of-band step</a>
           </h4>
 <p id="section-3.3.2-1">After the completed Initial Exchange, the peer or the server, depending on the negotiated direction, will generate an OOB message.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-2">Details still TBD.<a href="#section-3.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-2">This message consists of a 16-byte freshly generated nonce (OOB-Nonce), the authentication value OOB-Auth and the PeerId.
+The calculation of the OOB-Auth field is described in <a href="#sec_keys" class="xref">Section 3.4</a>.<a href="#section-3.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-3">The devices <span class="bcp14">MAY</span> also include the OOB-Id field, if size of the OOB message is not important.<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-4">Devices <span class="bcp14">SHOULD</span> export the message as a CBOR sequence of byte strings in the order PeerId, OOB-Nonce, OOB-Auth (, optionally OOB-Id).
+The format of the OOB message <span class="bcp14">MAY</span> be altered by the application, depending on the available interfaces.<a href="#section-3.3.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="waiting-exchange">
@@ -1838,7 +1858,7 @@ EAP Peer            Authenticator   EAP Server
 In this packet the peer omits the optional OOB-Id field.
 If the OOB message is delivered from the peer to the server, the server may have received an OOB message already.
 To allow the server to complete the association, the peer includes a nonce, along with the allocated PeerId.
-The nonce <span class="bcp14">MAY</span> be repeated for all Client Completion Requests while waiting for the completion.<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
+The nonce <span class="bcp14">MAY</span> be repeated for all Client Completion Requests while waiting for the completion, but <span class="bcp14">MUST</span> be recalculated if a new initial handshake is performed.<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3.3-3">If the server did not receive an OOB message, it answers with an EAP-Failure.<a href="#section-3.3.3-3" class="pilcrow">¶</a></p>
 <span id="name-waiting-exchange-2"></span><div id="waitingexchange">
 <figure id="figure-3">
@@ -1883,7 +1903,7 @@ If the peer did not include an OOB-Id, the server will include the OOB-Id of its
 In the unlikely case that both directions are negotiated and an OOB message is delivered from the peer to the server and from the server to the peer at the same time, as a tiebreaker, the OOB message from the server to the peer is chosen.<a href="#section-3.3.4-2" class="pilcrow">¶</a></p>
 <p id="section-3.3.4-3">The server generates a new nonce, calculates MAC_S according to <a href="#sec_keys" class="xref">Section 3.4</a> and sends a Server Completion Response to the peer.<a href="#section-3.3.4-3" class="pilcrow">¶</a></p>
 <p id="section-3.3.4-4">The peer will then calculate the MAC_P value and send a Client Finished message to the server.<a href="#section-3.3.4-4" class="pilcrow">¶</a></p>
-<p id="section-3.3.4-5">The server then answers with an EAP-Success.<a href="#section-3.3.4-5" class="pilcrow">¶</a></p>
+<p id="section-3.3.4-5">After checking the MAC_P value, the server then answers with an EAP-Success.<a href="#section-3.3.4-5" class="pilcrow">¶</a></p>
 <span id="name-completion-exchange-2"></span><div id="completionexchange">
 <figure id="figure-4">
             <div class="alignLeft art-text artwork" id="section-3.3.4-6.1">
@@ -2019,7 +2039,7 @@ EAP Peer            Authenticator   EAP Server
 <p id="section-3.3.6-1">The Upgrade Exchange is performed to upgrade either the EAP-UTE version or the used cipher suite, or refresh the cryptographic keying material.<a href="#section-3.3.6-1" class="pilcrow">¶</a></p>
 <p id="section-3.3.6-2">A client may choose to perform this exchange instead of a reconnect exchange. The client <span class="bcp14">SHOULD</span> only choose this if the server offers a better version or cipher suite in its Server Greeting or if the current set of cryptographic keys has been used for an application specific amount of reconnect exchanges or time.<a href="#section-3.3.6-2" class="pilcrow">¶</a></p>
 <p id="section-3.3.6-3">If the client cooses the Upgrade Exchange, it answers to the Server Greeting with a Client Greeting and includes the PeerId field.
-The server will look up the PeerId and, if a persistent association is found, answer with its Server Keyshare, including the optional MAC_S field, calculated according to <a href="#sec_keys" class="xref">Section 3.4</a>.<a href="#section-3.3.6-3" class="pilcrow">¶</a></p>
+To distinguish the Upgrade Exchange from the Intial Exchange, the server will look up the PeerId and, if a persistent association is found, answer with its Server Keyshare, including the optional MAC_S field, calculated according to <a href="#sec_keys" class="xref">Section 3.4</a>.<a href="#section-3.3.6-3" class="pilcrow">¶</a></p>
 <p id="section-3.3.6-4">The peer will then calculate the MACs and keying material according to <a href="#sec_keys_reconnect" class="xref">Section 3.4.3</a> and send a Client Finished message to the server, including its MAC_P value.<a href="#section-3.3.6-4" class="pilcrow">¶</a></p>
 <p id="section-3.3.6-5">The server checks the MAC_P value of the client and answers with an EAP-Success.
 Afterwards the server updates the association stored for the client.<a href="#section-3.3.6-5" class="pilcrow">¶</a></p>
@@ -2078,19 +2098,23 @@ This field consists for each message of the CBOR sequence of the message type an
 The optional MAC value at the end of the message is omitted.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.4.1-2">For the following definition || denotes a concatenation.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.4.1-3">Messages = Type_1 || Length_1 || Payload_1 || ... || Type_n || Length_n || Payload_n<a href="#section-3.4.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-4">The Messages field is calculated separately for each exchange, i.e. the Messages field for the Initial Exchange will include the Server Greeting, Client Greeting, Server Keyshare and Client Completion request.<a href="#section-3.4.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-5">The OOB-Id field is calculated over the concatenation of the OOB-Nonce and the Messages field of the Initial Exchange<a href="#section-3.4.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-6">OOB-Id = H( OOB-Nonce || Messages )<a href="#section-3.4.1-6" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-7">For the calculation of the MAC_S and MAC_P value, the Messages field will only include the messages sent up to the point of the MAC calculation.
+<p id="section-3.4.1-4">The Messages field is calculated separately for each exchange, i.e. the Messages field for the Initial Exchange will include the Server Greeting, Client Greeting, Server Keyshare and Client Finished message.<a href="#section-3.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-5">The OOB-Auth field is calculated as hash over the concatenation of the Messages field of the Initial Exchange, the generated OOB-Nonce and the direction of the Out-of-band message.
+The length of the OOB-Auth field is determined by the used hash algorithm.<a href="#section-3.4.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-6">OOB-Auth = H( Messages || OOB-Nonce || Direction)<a href="#section-3.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-7">The OOB-Id, used to identify the used OOB message, is calculated over the string "OOB-Id" concatenated with the OOB-Auth field.
+The hash result is truncated to 16 bytes.<a href="#section-3.4.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-8">OOB-Id = H( "OOB-Id" || OOB-Auth )[0..15]<a href="#section-3.4.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-9">For the calculation of the MAC_S and MAC_P value, the Messages field will only include the messages sent up to the point of the MAC calculation.
 For MAC_S this also includes the Server Keyshare/Server Completion Response message.
-For MAC_P the Client Finished message is omitted from the Messages field, so both MAC_P and MAC_S have the same input for the Messages field.<a href="#section-3.4.1-7" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-8">Depending on the performed Exchange, the MAC calculation differs.
-For the Completion Exchange, the MAC calculation includes the direction (0x01 for peer to server, 0x02 for server to peer), the Hash of the Messages field of the Initial Exchange, the Messages of the Completion exchange and the OOB-Nonce.<a href="#section-3.4.1-8" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-9">MAC_P = HMAC(K_p, 0x01 || H(Messages (Initial Exchange)) || Messages || OOB-Nonce)<a href="#section-3.4.1-9" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-10">MAC_S = HMAC(K_s, 0x02 || H(Messages (Initial Exchange)) || Messages || OOB-Nonce)<a href="#section-3.4.1-10" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-11">For the reconnect exchanges the MAC calculation will include only the direction and the Messages field of the Reconnect Exchange.<a href="#section-3.4.1-11" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-12">MAC_P = HMAC(K_p, 0x01 || Messages )<a href="#section-3.4.1-12" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-13">MAC_S = HMAC(K_s, 0x02 || Messages )<a href="#section-3.4.1-13" class="pilcrow">¶</a></p>
+For MAC_P the Client Finished message is omitted from the Messages field, so both MAC_P and MAC_S have the same input for the Messages field.<a href="#section-3.4.1-9" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-10">Depending on the performed Exchange, the MAC calculation differs.
+For the Completion Exchange, the MAC calculation includes the direction (0x01 for peer to server, 0x02 for server to peer), a Hash of the Messages field of the Initial Exchange, a hash of the Messages of the Completion exchange and the OOB-Nonce.<a href="#section-3.4.1-10" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-11">MAC_P = HMAC(K_p, 0x01 || H(Messages (Initial Exchange)) || H(Messages) || OOB-Nonce)<a href="#section-3.4.1-11" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-12">MAC_S = HMAC(K_s, 0x02 || H(Messages (Initial Exchange)) || H(Messages) || OOB-Nonce)<a href="#section-3.4.1-12" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-13">For the reconnect exchanges the MAC calculation will include only the direction and a hash of the Messages field of the Reconnect Exchange.<a href="#section-3.4.1-13" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-14">MAC_P = HMAC(K_p, 0x01 || H(Messages) )<a href="#section-3.4.1-14" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-15">MAC_S = HMAC(K_s, 0x02 || H(Messages) )<a href="#section-3.4.1-15" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-derivation">
@@ -2138,7 +2162,7 @@ For the Completion Exchange, the MAC calculation includes the direction (0x01 fo
                 <td class="text-left" rowspan="1" colspan="1"> </td>
                 <td class="text-left" rowspan="1" colspan="1">SuppPrivInfo</td>
                 <td class="text-left" rowspan="1" colspan="1">OOB-Nonce</td>
-                <td class="text-left" rowspan="1" colspan="1">16</td>
+                <td class="text-left" rowspan="1" colspan="1">32</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Reconnect Exchange without ECDHE</td>
@@ -2372,7 +2396,53 @@ The reference implementation will use 255 (Experimental) for now.<a href="#secti
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-implementation-status" class="section-name selfRef">Implementation Status</a>
       </h2>
 <p id="section-6-1">Note to RFC Editor: Please remove this entire section before publication.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">There are no implementations yet.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-2">As of now, only a partial implementation exists.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<div id="server-implementation-of-eap-ute">
+<section id="section-6.1">
+        <h3 id="name-server-implementation-of-ea">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-server-implementation-of-ea" class="section-name selfRef">Server Implementation of EAP-UTE</a>
+        </h3>
+<ul class="normal">
+<li class="normal" id="section-6.1-1.1">Responsible Organization: DFN-Verein/University of Bremen<a href="#section-6.1-1.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-1.2">Location: https://github.com/namib-project/eap-noob-ute-server<a href="#section-6.1-1.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-1.3">Coverage: Only Initial and Completion Exchange implemented<a href="#section-6.1-1.3" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-1.4">Level of Maturity: research<a href="#section-6.1-1.4" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-1.5">Version Compatibility: Version 01 of the individual draft partially implemented<a href="#section-6.1-1.5" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-1.6">Licensing: MIT / Apache 2.0<a href="#section-6.1-1.6" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-1.7">Contact Information: Jan-Frederik Rieckers, rieckers@dfn.de<a href="#section-6.1-1.7" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+<div id="client-implementation-in-esp-idf">
+<section id="section-6.2">
+        <h3 id="name-client-implementation-in-es">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-client-implementation-in-es" class="section-name selfRef">Client Implementation in ESP-IDF</a>
+        </h3>
+<ul class="normal">
+<li class="normal" id="section-6.2-1.1">Responsible Organization: DFN-Verein/University of Bremen<a href="#section-6.2-1.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.2-1.2">Location: https://github.com/namib-project/esp-idf/tree/namib/eap-ute<a href="#section-6.2-1.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.2-1.3">Coverage: Only Initial and Completion Exchange implemented<a href="#section-6.2-1.3" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.2-1.4">Level of Maturity: research<a href="#section-6.2-1.4" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.2-1.5">Version Compatibility: Version 01 of the individual draft partially implemented<a href="#section-6.2-1.5" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.2-1.6">Licensing: Apache 2.0<a href="#section-6.2-1.6" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.2-1.7">Contact Information: Jan-Frederik Rieckers, rieckers@dfn.de<a href="#section-6.2-1.7" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
 </section>
 </div>
 <div id="differences-to-rfc-9140-eap-noob">
