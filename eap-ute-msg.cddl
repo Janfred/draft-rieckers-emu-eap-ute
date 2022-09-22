@@ -89,7 +89,7 @@ element_key_server = (12 : $cose_ecdhe_key)
 element_mac_server = (13: nil)
 element_mac_peer = (14: nil)
 element_peer_id = (15: bytes)
-element_oob_id = (16: bytes)
+element_oob_id = (16: bytes .size 16 )
 element_retry_interval = (17: int)
 
 version = 0 / 1

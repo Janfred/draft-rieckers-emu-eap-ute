@@ -56,7 +56,7 @@ This document describes a method for registration, authentication, and key deriv
 These devices may come without preconfigured trust anchors or have no possibility to receive a network configuration that enables them to connect securely to a network.
 
 This document uses the basic design principle behind the EAP-NOOB method described in {{RFC9140}} and aims to improve some key elements of the protocol to better address the needs for IoT devices.
-This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the exchanged messages.
+This is mainly achieved by using CBOR with numeric keys instead of JSON to encode the exchanged messages and by modifying the message flow.
 
 TODO: The EAP-UTE protocol also allows extensions, they are still TBD. Basically, the messages can just include additional fields with newly defined meanings.
 
@@ -87,7 +87,7 @@ Each Exchange consists of several EAP request-response pairs.
 In order to give the user time to deliver the OOB message between the peer and the server, at least two separate EAP conversations are needed.
 
 The overall protocol starts with a version and cryptosuite negotiation and peer detection.
-Depending of the current state of the peer and server, different exchanges are selected.
+Depending on the current state of the peer and server, different exchanges are selected.
 
 If the server or the peer are in the unregistered state, peer and server exchange nonces and keys for the Ephemeral Elliptic Curve Diffie-Hellman.
 This is called the Initial Exchange.
@@ -135,48 +135,53 @@ type:
 : integer to indicate the type of the message
 
 payload:
-: a byte-string containing the CBOR encoded map
+: a byte-string containing a CBOR encoded map
 
-MAC:
-: an optional byte-string containing the message authentication code
+additional:
+: an optional byte-string containing additional information, e.g. a message authentication code, encoded as CBOR map
 
 Remark from the author:<br/>
 This format is just a first draft.
 It allows a very simple MAC calculation, since the MACs can just consist of the concatenated previous messages.
 This also allows an easy addition of extensions, since the extension payloads are automatically included in the MAC calculation, if they are part of the CBOR payload.
+Additionally, the additional section allows for extensions that do not need integrity protection, e.g. for referal to a different server in the background.
 
 The message payloads are encoded in CBOR {{RFC8949}} as maps.
-
 In {{mapkeys}} the different message fields, their assigned mapkey and the type are listed.
 
 | Mapkey | Type | Label | Description |
 |--------|------|-------|-------------|
 | 1      | Array of Integers | Versions | The versions supported by the server. For this document the version is 1 |
 | 2      | Integer | Version | The version selected by the peer |
-| 3      | Array? | Ciphers | The ciphers supported by the server. TODO: Not yet sure how to define them. |
-| 4      | Integer? | Cipher | The cipher selected by the peer |
+| 3      | Array | Ciphers\* | The ECDHE curves and Hash algorithms supported by the server. |
+| 4      | Array | Cipher\* | The ECHDE curve and Hash algorithm selected by the peer |
 | 5      | Integer | Directions | The OOB-Directions supported by the server. 0x01 for peer-to-server, 0x02 for server-to-peer, 0x03 for both |
 | 6      | Integer | Direction | The OOB-Direction selected by the peer. SHOULD be either 0x01 or 0x02, but MAY be 0x03 for both directions |
 | 7      | Map | ServerInfo | Information about the server, e.g. a URL for OOB-message-submission |
 | 8      | Map | PeerInfo | Information about the peer, e.g. manufacturer/serial number |
 | 9      | bytes | Nonce_P | Peer Nonce |
 | 10     | bytes | Nonce_S | Server Nonce |
-| 11     | ? | Key_P | Peer's ECDHE key according to the chosen cipher |
-| 12     | ? | Key_S | Server's ECDHE key |
-| 13     | null | MAC_S | Indication that Server MAC is included |
-| 14     | null | MAC_P | Indication that Peer MAC is included |
+| 11     | Map | Key_P\*\* | Peer's ECDHE key according to the chosen cipher |
+| 12     | Map | Key_S\*\* | Server's ECDHE key |
+| 13     | null/bytes | MAC_S\*\*\* | Indication that Server MAC is included (null value) and byte string in additional section |
+| 14     | null/bytes | MAC_P\*\*\* | Indication that Peer MAC is included (null value) and byte string in additional section |
 | 15     | text | PeerId | Peer Identifier |
 | 16     | bytes | OOB-Id | Identifier of the OOB message |
 | 17     | int | RetryInterval | Number of seconds to wait after a failed Completion Exchange |
 | 18     | Map | AdditionalServerInfo | Additional information about the server. TODO: not sure about this yet. |
 {: #mapkeys title="Mapkeys for CBOR encoding"}
 
-The inclusion of MAC_S or MAC_P indicate that the MAC value is appended to the message.
-The length of the MAC field is determined by the used cryptosuite.
-A message MUST NOT contain both MAC_S and MAC_P, only one of these values can be present in a message.
+\*: The Ciphers field consists of an array of two arrays.
+The first array contains all supported ECDHE curves using the identifiers from the COSE Elliptic Curves registry. The server MUST NOT offer and the peer MUST NOT accept curves not suited for ECDH.
+The second array contains all supported Hash algorithms using the indentifiers from the COSE Algorithms registry. The server MUST only offer and the peer MUST only accept Hash algorithms.
+The Cipher field consists of an array of two items, first the selected ECDHE curve, second the selected Hash algorithm.
 
-TODO: Depending on the definition of the Cipher Suites, the format for Ciphers and Cipher might change, as well as Key_P and Key_S.
-The most immediate choice would be COSE {{RFC8152}}. But maybe there are better choices out there.
+\*\*: The peer and server Key are encoded as COSE key {{RFC8152}}.
+
+\*\*\*: The inclusion of MAC_S or MAC_P map keys with a NULL map value indicate that the MAC value is included in the additional field of the CBOR sequence.
+The MAC field is encoded with the same map key as byte string, its length is determined by the used cryptosuite.
+
+A message MUST NOT contain both MAC_S and MAC_P, only one of these values can be present in a message.
 
 #### Thoughts about the message format
 
@@ -271,7 +276,7 @@ After reception of the EAP-Response/Identity packet, the server always answers w
 This Server Greeting contains the supported protocol versions, ciphers and OOB directions along with the ServerInfo.
 
 Depending on the peer state, the peer chooses the next packet.
-If the peer is in the unregistered state and does not yet have an ephemeral or persistent state, it chooses the Client Greeting, which starts the Initial Handshake.
+If the peer is in the unregistered state and thus does not yet have an ephemeral or persistent state, it chooses the Client Greeting, which starts the Initial Handshake.
 
 If the peer is in the Waiting for OOB or OOB Received state, the Initial Exchange has completed and the OOB step needs to take place.
 If the negotiated direction is from server to peer, the peer SHOULD NOT try to reconnect until the peer received an OOB message.
@@ -281,7 +286,7 @@ The peer will send a Client Completion Request to initiate the Waiting/Completio
 If the peer is in the Registered state, it may choose between three different Reconnect Exchanges.
 If the peer wants a reconnect without new key exchanges, it will send a Client Completion Request, starting the Reconnect Exchange without ECDHE.
 If the peer wants to reconnect with new key exchanges, it will send a Client Key Share packet, which starts the Reconnect Exchange with new ECDHE exchange.
-The third option is a reconnect with a new version or cipher, this is TBD.
+If the peer wants to upgrade to a new protocol version or change the used cipher suites, it will send a Client Greeting, starting the Upgrade exchange.
 
 ### Initial Exchange
 
@@ -290,7 +295,7 @@ The Initial Exchange comprises of the following packets:
 After the Server Greeting common to all exchanges, the peer sends a Client Greeting packet.
 The Client Greeting contains the peer's chosen protocol version, cipher and direction of the OOB message.
 The peer MUST only choose values for these fields offered by the server in it's Server Greeting.
-For Direction the peer SHOULD choose either 0x01 or 0x02 if the server offered 0x03.
+For Direction the peer SHOULD choose either 0x01 (peer-to-server) or 0x02 (server-to-peer) if the server offered 0x03 (both directions).
 Additionally, the Client Greeting contains PeerInfo, a nonce and the peer's ECDHE public key.
 
 The server will then answer with a Server Keyshare packet.
@@ -333,17 +338,25 @@ Since no authentication has yet been achieved, the server then answers with an E
 
 After the completed Initial Exchange, the peer or the server, depending on the negotiated direction, will generate an OOB message.
 
-Details still TBD.
+This message consists of a 16-byte freshly generated nonce (OOB-Nonce), the authentication value OOB-Auth and the PeerId.
+The calculation of the OOB-Auth field is described in {{sec_keys}}.
+
+The devices MAY also include the OOB-Id field, if size of the OOB message is not important.
+
+Devices SHOULD export the message as a CBOR sequence of byte strings in the order PeerId, OOB-Nonce, OOB-Auth (, optionally OOB-Id).
+The format of the OOB message MAY be altered by the application, depending on the available interfaces.
+
 
 ### Waiting Exchange
 
 The Waiting Exchange is performed if neither the server nor the peer have received an OOB message yet.
+<!-- TODO: Clarify that Waiting and Completion Exchange are the same until EAP-Failure -->
 
 The peer probes the server with a Client Completion Request.
 In this packet the peer omits the optional OOB-Id field.
 If the OOB message is delivered from the peer to the server, the server may have received an OOB message already.
 To allow the server to complete the association, the peer includes a nonce, along with the allocated PeerId.
-The nonce MAY be repeated for all Client Completion Requests while waiting for the completion.
+The nonce MAY be repeated for all Client Completion Requests while waiting for the completion, but MUST be recalculated if a new initial handshake is performed.
 
 If the server did not receive an OOB message, it answers with an EAP-Failure.
 
@@ -381,7 +394,7 @@ The server generates a new nonce, calculates MAC_S according to {{sec_keys}} and
 
 The peer will then calculate the MAC_P value and send a Client Finished message to the server.
 
-The server then answers with an EAP-Success.
+After checking the MAC_P value, the server then answers with an EAP-Success.
 
 
     EAP Peer            Authenticator   EAP Server
@@ -499,7 +512,7 @@ A client may choose to perform this exchange instead of a reconnect exchange. Th
 <!-- TODO: Maybe the server should be able to reject the upgrade handshake or at least reject the renegotiation of keying materials based on a rate limit to prevent DoS attacks -->
 
 If the client cooses the Upgrade Exchange, it answers to the Server Greeting with a Client Greeting and includes the PeerId field.
-The server will look up the PeerId and, if a persistent association is found, answer with its Server Keyshare, including the optional MAC_S field, calculated according to {{sec_keys}}.
+To distinguish the Upgrade Exchange from the Intial Exchange, the server will look up the PeerId and, if a persistent association is found, answer with its Server Keyshare, including the optional MAC_S field, calculated according to {{sec_keys}}.
 
 The peer will then calculate the MACs and keying material according to {{sec_keys_reconnect}} and send a Client Finished message to the server, including its MAC_P value.
 
@@ -547,28 +560,34 @@ For the following definition \|\| denotes a concatenation.
 Messages = Type_1 \|\| Length_1 \|\| Payload_1 \|\| ... \|\| Type_n \|\| Length_n \|\| Payload_n
 <!-- TODO: This is still the old TLV syntax, needs to be adjusted to CBOR sequences -->
 
-The Messages field is calculated separately for each exchange, i.e. the Messages field for the Initial Exchange will include the Server Greeting, Client Greeting, Server Keyshare and Client Completion request.
+The Messages field is calculated separately for each exchange, i.e. the Messages field for the Initial Exchange will include the Server Greeting, Client Greeting, Server Keyshare and Client Finished message.
 
-The OOB-Id field is calculated over the concatenation of the OOB-Nonce and the Messages field of the Initial Exchange
+The OOB-Auth field is calculated as hash over the concatenation of the Messages field of the Initial Exchange, the generated OOB-Nonce and the direction of the Out-of-band message.
+The length of the OOB-Auth field is determined by the used hash algorithm.
 
-OOB-Id = H( OOB-Nonce \|\| Messages )
+OOB-Auth = H( Messages \|\| OOB-Nonce \|\| Direction)
+
+The OOB-Id, used to identify the used OOB message, is calculated over the string "OOB-Id" concatenated with the OOB-Auth field.
+The hash result is truncated to 16 bytes.
+
+OOB-Id = H( "OOB-Id" \|\| OOB-Auth )\[0..15\]
 
 For the calculation of the MAC_S and MAC_P value, the Messages field will only include the messages sent up to the point of the MAC calculation.
 For MAC_S this also includes the Server Keyshare/Server Completion Response message.
 For MAC_P the Client Finished message is omitted from the Messages field, so both MAC_P and MAC_S have the same input for the Messages field.
 
 Depending on the performed Exchange, the MAC calculation differs.
-For the Completion Exchange, the MAC calculation includes the direction (0x01 for peer to server, 0x02 for server to peer), the Hash of the Messages field of the Initial Exchange, the Messages of the Completion exchange and the OOB-Nonce.
+For the Completion Exchange, the MAC calculation includes the direction (0x01 for peer to server, 0x02 for server to peer), a Hash of the Messages field of the Initial Exchange, a hash of the Messages of the Completion exchange and the OOB-Nonce.
 
-MAC_P = HMAC(K_p, 0x01 \|\| H(Messages (Initial Exchange)) \|\| Messages \|\| OOB-Nonce)
+MAC_P = HMAC(K_p, 0x01 \|\| H(Messages (Initial Exchange)) \|\| H(Messages) \|\| OOB-Nonce)
 
-MAC_S = HMAC(K_s, 0x02 \|\| H(Messages (Initial Exchange)) \|\| Messages \|\| OOB-Nonce)
+MAC_S = HMAC(K_s, 0x02 \|\| H(Messages (Initial Exchange)) \|\| H(Messages) \|\| OOB-Nonce)
 
-For the reconnect exchanges the MAC calculation will include only the direction and the Messages field of the Reconnect Exchange.
+For the reconnect exchanges the MAC calculation will include only the direction and a hash of the Messages field of the Reconnect Exchange.
 
-MAC_P = HMAC(K_p, 0x01 \|\| Messages )
+MAC_P = HMAC(K_p, 0x01 \|\| H(Messages) )
 
-MAC_S = HMAC(K_s, 0x02 \|\| Messages )
+MAC_S = HMAC(K_s, 0x02 \|\| H(Messages) )
 
 ### Key derivation
 
@@ -579,7 +598,7 @@ The key derivation is performed differently depending on the performed Exchange.
 | | AlgorithmId | "EAP-UTE" | 7 |
 | | PartyUInfo | Nonce_P | 32 |
 | | PartyVInfo | Nonce_S | 32 |
-| | SuppPrivInfo | OOB-Nonce | 16 |
+| | SuppPrivInfo | OOB-Nonce | 32 |
 | Reconnect Exchange without ECDHE | Z | Association_Key | 32 |
 | | AlgorithmId | "EAP-UTE" | 7 |
 | | PartyUInfo | Nonce_P | 32 |
@@ -661,7 +680,27 @@ Additionally, the IANA should create registries for the message types and the me
 
 Note to RFC Editor: Please remove this entire section before publication.
 
-There are no implementations yet.
+As of now, only a partial implementation exists.
+
+## Server Implementation of EAP-UTE
+
+* Responsible Organization: DFN-Verein/University of Bremen
+* Location: https://github.com/namib-project/eap-noob-ute-server
+* Coverage: Only Initial and Completion Exchange implemented
+* Level of Maturity: research
+* Version Compatibility: Version 01 of the individual draft partially implemented
+* Licensing: MIT / Apache 2.0
+* Contact Information: Jan-Frederik Rieckers, rieckers@dfn.de
+
+## Client Implementation in ESP-IDF
+
+* Responsible Organization: DFN-Verein/University of Bremen
+* Location: https://github.com/namib-project/esp-idf/tree/namib/eap-ute
+* Coverage: Only Initial and Completion Exchange implemented
+* Level of Maturity: research
+* Version Compatibility: Version 01 of the individual draft partially implemented
+* Licensing: Apache 2.0
+* Contact Information: Jan-Frederik Rieckers, rieckers@dfn.de
 
 # Differences to RFC 9140 (EAP-NOOB)
 
